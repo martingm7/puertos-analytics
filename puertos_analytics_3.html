@@ -159,6 +159,8 @@ html,body{height:100%;background:#F4F3F0;font-family:-apple-system,BlinkMacSyste
 .resumen-key{color:var(--gray-d);}
 .resumen-val{font-weight:700;}
 .resumen-val.g{color:var(--teal);}
+.save-btn{width:100%;padding:14px;background:var(--teal);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:8px;}
+.save-btn:disabled{background:var(--gray-d);cursor:not-allowed;}
 .copy-btn{width:100%;padding:14px;background:var(--navy);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:8px;}
 .export-btn{width:100%;padding:12px;background:var(--white);color:var(--text);border:1.5px solid var(--border);border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;}
 .reset-btn{width:100%;padding:10px;background:none;color:var(--gray-d);border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;}
@@ -401,6 +403,7 @@ html,body{height:100%;background:#F4F3F0;font-family:-apple-system,BlinkMacSyste
         <div class="resumen-title">GOLEADORAS</div>
         <div id="res-jug-list" style="font-size:13px;color:var(--gray-d);">Sin goles registrados.</div>
       </div>
+      <button class="save-btn" onclick="saveToSheet()" id="save-sheet-btn">💾 Guardar partido en historial</button>
       <button class="copy-btn" onclick="copyWhatsApp()">Copiar para WhatsApp</button>
       <button class="export-btn" onclick="exportCSV()">Exportar CSV</button>
       <button class="reset-btn" onclick="resetMatch()">Nuevo partido</button>
@@ -538,6 +541,7 @@ const PLANTELES = {
 // STATE
 // ══════════════════════════════════════════
 const SK = 'puertos_analytics_v3';
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyEiERIhAWOco1y9WayPB-epc9T-q4XyOCVgOeTlYUCVPkz_VkR_cyjhySDLdyoDJxKGQ/exec';
 let S = {
   mode:'scout', rival:'Rival', fecha:'', cond:'local', cat:'7ma', q:1,
   m:{},      // metrics total
@@ -1087,6 +1091,57 @@ function doRipple(el,e){
   const size=Math.max(rect.width,rect.height)*2;
   r.style.cssText=`width:${size}px;height:${size}px;left:${(e&&e.clientX?e.clientX-rect.left:rect.width/2)-size/2}px;top:${(e&&e.clientY?e.clientY-rect.top:rect.height/2)-size/2}px;`;
   el.appendChild(r); setTimeout(()=>r.remove(),500);
+}
+
+// ══════════════════════════════════════════
+// GUARDAR EN GOOGLE SHEETS
+// ══════════════════════════════════════════
+async function saveToSheet(){
+  const btn = document.getElementById('save-sheet-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Guardando...';
+  
+  const ccP = S.cc.filter(c=>c.equipo==='Puertos');
+  const ccR = S.cc.filter(c=>c.equipo==='Rival');
+  
+  const payload = {
+    fecha: S.fecha || new Date().toLocaleDateString('es-AR'),
+    rival: S.rival || 'Rival',
+    cat: S.cat,
+    cond: S.cond,
+    metrics: S.m,
+    cc_goles_p: ccP.filter(c=>c.resultado==='Gol').length,
+    cc_goles_r: ccR.filter(c=>c.resultado==='Gol').length,
+    notas_sintesis: S.notas.sintesis || '',
+    goleadoras: Object.entries(S.jugGoles)
+      .filter(([,g])=>g>0)
+      .map(([k,g])=>{
+        const isMine=k.startsWith('p_');
+        const d=k.replace(/^[pr]_/,'');
+        const pl=isMine?getPlayingPlantel():getRivalPlantel();
+        const j=pl.find(p=>p.d===d);
+        return (isMine?'':'R:')+d+' '+(j?j.n:'?')+':'+g+'G';
+      }).join(', ')
+  };
+
+  try {
+    const resp = await fetch(SHEET_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json();
+    if(data.ok){
+      btn.textContent = '✅ Guardado correctamente';
+      btn.style.background = 'var(--teal)';
+      showToast('Partido guardado en historial');
+    } else {
+      throw new Error(data.error || 'Error desconocido');
+    }
+  } catch(e) {
+    btn.textContent = '❌ Error — intentá de nuevo';
+    btn.disabled = false;
+    showToast('Error al guardar: '+e.message);
+  }
 }
 
 // ══════════════════════════════════════════
