@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Puertos Analytics</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --navy:#0A1F3C;--navy2:#142d54;
+  --blue:#185FA5;--blue-l:#E6F1FB;
+  --teal:#0F6E56;--teal-l:#D6F0E8;
+  --amber:#B87000;--amber-l:#FDF3DC;
+  --red:#B03030;--red-l:#FDECEA;
+  --purple:#534AB7;--purple-l:#EEEDFE;
+  --orange:#C05000;--orange-l:#FEF0E6;
+  --gray:#F4F3F0;--gray2:#E8E6E1;--gray-d:#888780;
+  --border:#DDD9D2;--text:#1A1A1A;--white:#fff;
+}
+html,body{height:100%;background:#F4F3F0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--text);overscroll-behavior:none;}
+
+.screen{display:none;min-height:100vh;flex-direction:column;}
+.screen.active{display:flex;}
+
+/* HEADER */
+.hdr{background:var(--navy);padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;flex-shrink:0;}
+.hdr-left{display:flex;flex-direction:column;gap:1px;}
+.hdr-title{font-size:17px;font-weight:700;color:#fff;}
+.hdr-sub{font-size:10px;color:rgba(255,255,255,0.45);letter-spacing:0.04em;}
+.hdr-right{display:flex;align-items:center;gap:8px;}
+.save-dot{width:8px;height:8px;border-radius:50%;background:#2ECC71;transition:background 0.3s;flex-shrink:0;}
+.save-dot.saving{background:#E09B2D;}
+.save-lbl{font-size:9px;color:rgba(255,255,255,0.4);letter-spacing:0.04em;}
+.back-btn{background:none;border:none;color:rgba(255,255,255,0.7);font-size:22px;cursor:pointer;padding:0 4px;line-height:1;}
+.screen-body{flex:1;overflow-y:auto;padding-bottom:80px;}
+
+/* HOME */
+.home-hero{background:var(--navy);padding:28px 20px 24px;text-align:center;}
+.home-logo{font-size:28px;font-weight:800;color:#fff;letter-spacing:-0.02em;}
+.home-logo span{color:rgba(255,255,255,0.3);}
+.home-tagline{font-size:11px;color:rgba(255,255,255,0.4);margin-top:6px;letter-spacing:0.08em;}
+.home-section{padding:18px 16px 6px;font-size:10px;font-weight:700;color:var(--gray-d);letter-spacing:0.1em;}
+.mode-card{margin:0 16px 10px;background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:transform 0.1s;}
+.mode-card:active{transform:scale(0.98);}
+.mode-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.mode-name{font-size:16px;font-weight:700;}
+.mode-desc{font-size:12px;color:var(--gray-d);margin-top:2px;line-height:1.4;}
+.mode-arrow{font-size:18px;color:var(--gray-d);}
+
+/* SETUP */
+.setup-body{padding:16px;}
+.setup-field{margin-bottom:14px;}
+.setup-label{font-size:11px;font-weight:700;color:var(--gray-d);letter-spacing:0.08em;margin-bottom:6px;display:block;}
+.setup-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:16px;background:var(--white);color:var(--text);outline:none;}
+.setup-input:focus{border-color:var(--blue);}
+.pill-group{display:flex;gap:8px;flex-wrap:wrap;}
+.pill{padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s;color:var(--gray-d);}
+.pill.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+.start-btn{width:100%;margin-top:20px;padding:16px;background:var(--navy);color:#fff;border:none;border-radius:12px;font-size:17px;font-weight:700;cursor:pointer;}
+
+/* QUARTER BAR */
+.q-bar{background:var(--white);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;gap:8px;align-items:center;position:sticky;top:58px;z-index:150;flex-shrink:0;}
+.q-bar-label{font-size:10px;color:var(--gray-d);letter-spacing:0.06em;font-weight:700;margin-right:2px;}
+.q-btn{flex:1;padding:8px 0;border-radius:8px;border:1.5px solid var(--border);background:var(--white);font-size:14px;font-weight:700;color:var(--gray-d);cursor:pointer;transition:all 0.15s;}
+.q-btn.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+/* SCOREBOARD */
+.scoreboard{margin:10px 16px 0;background:var(--navy);border-radius:14px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+.team-block{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;}
+.team-lbl{font-size:10px;color:rgba(255,255,255,0.45);letter-spacing:0.08em;font-weight:700;}
+.team-score{font-size:48px;font-weight:800;color:#fff;line-height:1;font-variant-numeric:tabular-nums;}
+.score-sep{font-size:26px;color:rgba(255,255,255,0.2);margin:0 4px;}
+.score-adj{display:flex;gap:6px;margin-top:4px;}
+.score-adj button{width:28px;height:28px;border-radius:50%;border:none;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.score-adj .plus{background:rgba(255,255,255,0.15);color:#fff;}
+.score-adj .minus{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);}
+
+/* TAB BAR */
+.tab-bar{background:var(--white);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;position:sticky;top:113px;z-index:140;flex-shrink:0;scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab{padding:10px 14px;font-size:12px;font-weight:700;color:var(--gray-d);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;flex-shrink:0;letter-spacing:0.04em;transition:all 0.15s;}
+.tab.active{color:var(--navy);border-bottom-color:var(--navy);}
+
+/* TAB PANELS */
+.tab-panel{display:none;padding:12px 16px 16px;}
+.tab-panel.active{display:block;}
+
+/* SECTION LABELS */
+.sec{font-size:10px;font-weight:700;color:var(--gray-d);letter-spacing:0.1em;margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--gray2);}
+.sec:first-child{margin-top:4px;}
+
+/* METRIC ROW — flat list style like the old app */
+.metric-row{
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  padding:13px 14px;margin-bottom:8px;
+  display:flex;align-items:center;gap:12px;
+}
+.metric-row-label{flex:1;font-size:15px;font-weight:500;color:var(--text);}
+.metric-row-val{font-size:22px;font-weight:800;min-width:36px;text-align:center;font-variant-numeric:tabular-nums;}
+.metric-row-btns{display:flex;gap:6px;align-items:center;}
+.m-btn{width:36px;height:36px;border-radius:8px;border:none;font-size:22px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.08s;flex-shrink:0;}
+.m-btn:active{transform:scale(0.88);}
+.m-plus{background:var(--navy);color:#fff;}
+.m-minus{background:var(--gray2);color:var(--gray-d);}
+
+/* Color dots for labels */
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;flex-shrink:0;}
+.dot-teal{background:var(--teal);}
+.dot-blue{background:var(--blue);}
+.dot-amber{background:var(--amber);}
+.dot-red{background:var(--red);}
+.dot-purple{background:var(--purple);}
+.dot-orange{background:var(--orange);}
+.dot-gray{background:var(--gray-d);}
+
+/* CC */
+.cc-form{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;}
+.cc-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.cc-row label{font-size:11px;font-weight:700;color:var(--gray-d);display:block;margin-bottom:4px;}
+.cc-sel{padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--white);color:var(--text);flex:1;min-width:100px;outline:none;}
+.cc-note{width:100%;padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--white);color:var(--text);outline:none;}
+.cc-add-btn{width:100%;padding:13px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;}
+.cc-gol-note{background:var(--teal-l);color:var(--teal);font-size:12px;font-weight:600;padding:8px 12px;border-radius:8px;margin-bottom:10px;}
+.cc-item{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;font-size:12px;margin-bottom:6px;}
+.cc-q{background:var(--navy);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;flex-shrink:0;}
+.cc-info{flex:1;color:var(--text);}
+.cc-res{font-size:11px;font-weight:700;}
+.cc-res.gol{color:var(--teal);}
+.cc-res.nogol{color:var(--red);}
+.cc-del{background:none;border:none;color:var(--gray-d);cursor:pointer;font-size:18px;padding:0 2px;}
+
+/* JUGADORAS */
+.jugadora-item{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.jug-dorsal{width:36px;height:36px;border-radius:8px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;}
+.jug-name{flex:1;font-size:13px;font-weight:600;}
+.jug-gols{font-size:13px;color:var(--teal);font-weight:800;min-width:32px;text-align:right;}
+.jug-btn{width:32px;height:32px;border-radius:7px;border:none;background:var(--teal-l);color:var(--teal);font-size:20px;font-weight:700;cursor:pointer;}
+.jug-undo{width:32px;height:32px;border-radius:7px;border:none;background:var(--gray2);color:var(--gray-d);font-size:14px;cursor:pointer;}
+
+/* PATRONES */
+.patron-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;}
+.patron-dot{width:10px;height:10px;border-radius:50%;margin-top:3px;flex-shrink:0;}
+.patron-dot.ok{background:var(--teal);}
+.patron-dot.warn{background:var(--amber);}
+.patron-dot.info{background:var(--blue);}
+.patron-title{font-size:13px;font-weight:700;color:var(--text);}
+.patron-body{font-size:12px;color:var(--gray-d);margin-top:2px;line-height:1.4;}
+
+/* NOTAS */
+.nota-textarea{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;min-height:90px;background:var(--white);color:var(--text);resize:vertical;outline:none;}
+
+/* RESUMEN */
+.resumen-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;}
+.resumen-title{font-size:10px;font-weight:700;color:var(--gray-d);letter-spacing:0.08em;margin-bottom:10px;}
+.resumen-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--gray2);font-size:14px;}
+.resumen-row:last-child{border-bottom:none;}
+.resumen-key{color:var(--gray-d);}
+.resumen-val{font-weight:700;}
+.resumen-val.g{color:var(--teal);}
+.copy-btn{width:100%;padding:14px;background:var(--navy);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:8px;}
+.export-btn{width:100%;padding:12px;background:var(--white);color:var(--text);border:1.5px solid var(--border);border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px;}
+.reset-btn{width:100%;padding:10px;background:none;color:var(--gray-d);border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;}
+
+/* UNDO BAR */
+.undo-bar{background:var(--white);border-top:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;bottom:0;z-index:300;flex-shrink:0;}
+.undo-text{font-size:12px;color:var(--gray-d);}
+.undo-btn{font-size:13px;font-weight:700;color:var(--blue);background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;}
+
+/* GOL FLOTANTE */
+.fab-gol{
+  position:fixed;bottom:60px;right:16px;z-index:400;
+  width:58px;height:58px;border-radius:50%;
+  background:#E07000;border:none;color:#fff;
+  font-size:11px;font-weight:800;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  line-height:1.1;letter-spacing:0.02em;
+  box-shadow:0 3px 12px rgba(0,0,0,0.25);
+}
+.fab-gol:active{transform:scale(0.93);}
+
+/* TOAST */
+.toast{position:fixed;bottom:68px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--navy);color:#fff;padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;white-space:nowrap;transition:transform 0.22s ease,opacity 0.22s;opacity:0;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+/* RIPPLE */
+.rip-wrap{position:relative;overflow:hidden;}
+.ripple-el{position:absolute;border-radius:50%;background:rgba(0,0,0,0.08);pointer-events:none;transform:scale(0);animation:rip 0.4s ease-out forwards;}
+@keyframes rip{to{transform:scale(5);opacity:0;}}
+</style>
+</head>
+<body>
+
+<!-- ══ HOME ══════════════════════════════════════ -->
+<div class="screen active" id="screen-home">
+  <div class="home-hero">
+    <div class="home-logo">Puertos <span>Analytics</span></div>
+    <div class="home-tagline">PUERTOS DEL LAGO · METRO AAHBA 2026</div>
+  </div>
+  <div class="screen-body">
+    <div class="home-section">MODO DE ANÁLISIS</div>
+    <div class="mode-card" onclick="startSetup('scout')">
+      <div class="mode-icon" style="background:#E6F1FB;">🔍</div>
+      <div style="flex:1"><div class="mode-name">Scout — Rival</div><div class="mode-desc">Observar y registrar ambos equipos en tiempo real.</div></div>
+      <div class="mode-arrow">›</div>
+    </div>
+    <div class="mode-card" onclick="startSetup('7ma')">
+      <div class="mode-icon" style="background:#D6F0E8;">🏑</div>
+      <div style="flex:1"><div class="mode-name">Puertos 7ma</div><div class="mode-desc">Plantel completo — Julieta Parrilla.</div></div>
+      <div class="mode-arrow">›</div>
+    </div>
+    <div class="mode-card" onclick="startSetup('1ra')">
+      <div class="mode-icon" style="background:#EEEDFE;">⭐</div>
+      <div style="flex:1"><div class="mode-name">Puertos 1ra</div><div class="mode-desc">Plantel completo — Gonzalo Jusco.</div></div>
+      <div class="mode-arrow">›</div>
+    </div>
+    <div class="home-section">SESIÓN GUARDADA</div>
+    <div id="saved-card" style="display:none;" class="mode-card" onclick="resumeSession()">
+      <div class="mode-icon" style="background:#FDF3DC;">💾</div>
+      <div style="flex:1"><div class="mode-name">Continuar partido</div><div class="mode-desc" id="saved-desc">—</div></div>
+      <div class="mode-arrow">›</div>
+    </div>
+    <div id="no-saved" style="margin:0 16px 16px;font-size:13px;color:var(--gray-d);">Sin sesión guardada.</div>
+  </div>
+</div>
+
+<!-- ══ SETUP ══════════════════════════════════════ -->
+<div class="screen" id="screen-setup">
+  <div class="hdr">
+    <div class="hdr-left"><div class="hdr-title">Configurar partido</div><div class="hdr-sub" id="setup-mode-lbl">—</div></div>
+    <button class="back-btn" onclick="showScreen('home')">✕</button>
+  </div>
+  <div class="screen-body">
+    <div class="setup-body">
+      <div class="setup-field"><label class="setup-label">RIVAL</label><input class="setup-input" id="inp-rival" type="text" placeholder="Ej: Los Pinos, Francesa..."></div>
+      <div class="setup-field"><label class="setup-label">FECHA / JORNADA</label><input class="setup-input" id="inp-fecha" type="text" placeholder="Ej: F11, Amistoso 26/05..."></div>
+      <div class="setup-field"><label class="setup-label">CONDICIÓN</label>
+        <div class="pill-group">
+          <div class="pill active" data-cond="local" onclick="setPill(this,'cond')">Local</div>
+          <div class="pill" data-cond="visitante" onclick="setPill(this,'cond')">Visitante</div>
+          <div class="pill" data-cond="neutro" onclick="setPill(this,'cond')">Neutro</div>
+        </div>
+      </div>
+      <div class="setup-field"><label class="setup-label">CATEGORÍA</label>
+        <div class="pill-group">
+          <div class="pill active" data-cat="7ma" onclick="setPill(this,'cat')">7ma</div>
+          <div class="pill" data-cat="1ra" onclick="setPill(this,'cat')">1ra</div>
+          <div class="pill" data-cat="5ta" onclick="setPill(this,'cat')">5ta</div>
+          <div class="pill" data-cat="6ta" onclick="setPill(this,'cat')">6ta</div>
+        </div>
+      </div>
+      <button class="start-btn" onclick="startMatch()">Iniciar partido →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MATCH ══════════════════════════════════════ -->
+<div class="screen" id="screen-match">
+  <div class="hdr">
+    <div class="hdr-left"><div class="hdr-title" id="match-title">Partido</div><div class="hdr-sub" id="match-sub">—</div></div>
+    <div class="hdr-right"><span class="save-lbl">autograbado</span><div class="save-dot" id="save-dot"></div></div>
+  </div>
+
+  <div class="q-bar">
+    <span class="q-bar-label">Q</span>
+    <button class="q-btn active" data-q="1" onclick="setQ(1)">1</button>
+    <button class="q-btn" data-q="2" onclick="setQ(2)">2</button>
+    <button class="q-btn" data-q="3" onclick="setQ(3)">3</button>
+    <button class="q-btn" data-q="4" onclick="setQ(4)">4</button>
+  </div>
+
+  <div class="scoreboard">
+    <div class="team-block">
+      <div class="team-lbl">PUERTOS</div>
+      <div class="team-score" id="score-p">0</div>
+      <div class="score-adj"><button class="plus" onclick="adjScore('p',1)">+</button><button class="minus" onclick="adjScore('p',-1)">−</button></div>
+    </div>
+    <div class="score-sep">—</div>
+    <div class="team-block">
+      <div class="team-lbl" id="lbl-rival">RIVAL</div>
+      <div class="team-score" id="score-r">0</div>
+      <div class="score-adj"><button class="plus" onclick="adjScore('r',1)">+</button><button class="minus" onclick="adjScore('r',-1)">−</button></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <div class="tab active" data-tab="ataque" onclick="switchTab('ataque')">ATAQUE</div>
+    <div class="tab" data-tab="defensa" onclick="switchTab('defensa')">DEFENSA</div>
+    <div class="tab" data-tab="cortos" onclick="switchTab('cortos')">CORTOS</div>
+    <div class="tab" data-tab="jugadoras" onclick="switchTab('jugadoras')">JUGADORAS</div>
+    <div class="tab" data-tab="patrones" onclick="switchTab('patrones')">PATRONES</div>
+    <div class="tab" data-tab="notas" onclick="switchTab('notas')">NOTAS</div>
+    <div class="tab" data-tab="resumen" onclick="switchTab('resumen')">RESUMEN</div>
+  </div>
+
+  <div class="screen-body" id="match-body">
+
+    <!-- ATAQUE -->
+    <div class="tab-panel active" id="panel-ataque">
+      <div class="sec">PRODUCCIÓN OFENSIVA</div>
+      <div id="rows-ataque-prod"></div>
+      <div class="sec">ENTRADAS AL CÍRCULO</div>
+      <div id="rows-ataque-circ"></div>
+      <div class="sec">GOLES POR ZONA</div>
+      <div id="rows-ataque-zona"></div>
+      <div class="sec">TRANSICIÓN</div>
+      <div id="rows-ataque-trans"></div>
+    </div>
+
+    <!-- DEFENSA -->
+    <div class="tab-panel" id="panel-defensa">
+      <div class="sec">RIVAL — PRODUCCIÓN OFENSIVA</div>
+      <div id="rows-def-prod"></div>
+      <div class="sec">RIVAL — ENTRADAS AL CÍRCULO</div>
+      <div id="rows-def-circ"></div>
+      <div class="sec">PUERTOS — RESPUESTA DEFENSIVA</div>
+      <div id="rows-def-resp"></div>
+    </div>
+
+    <!-- CORTOS -->
+    <div class="tab-panel" id="panel-cortos">
+      <div class="sec">REGISTRAR CORNER CORTO</div>
+      <div class="cc-gol-note">⚡ Si el resultado es "Gol", se suma automáticamente al marcador.</div>
+      <div class="cc-form">
+        <div class="cc-row">
+          <div style="flex:1;min-width:90px;"><label>Equipo</label><select class="cc-sel" id="cc-equipo"><option value="Puertos">Puertos</option><option value="Rival">Rival</option></select></div>
+          <div style="flex:1;min-width:90px;"><label>Sistema</label><select class="cc-sel" id="cc-sistema"><option>Tiro directo</option><option>Pase + remate</option><option>Variante</option></select></div>
+        </div>
+        <div class="cc-row">
+          <div style="flex:1;min-width:90px;"><label>Tirador / #</label><input class="cc-sel" id="cc-tirador" type="text" placeholder="Dorsal o nombre"></div>
+          <div style="flex:1;min-width:90px;"><label>Resultado</label><select class="cc-sel" id="cc-resultado"><option>Gol</option><option>No convirtió</option><option>Bloqueado</option><option>Afuera</option></select></div>
+        </div>
+        <div style="margin-bottom:10px;"><label style="font-size:11px;font-weight:700;color:var(--gray-d);display:block;margin-bottom:4px;">Nota (opcional)</label><input class="cc-note" id="cc-nota" type="text" placeholder="Ej: tiro izq-der, rebote, variante corta..."></div>
+        <button class="cc-add-btn" onclick="addCC()">+ Registrar Corner Corto</button>
+      </div>
+      <div class="sec">REGISTRO</div>
+      <div id="cc-list"><div style="font-size:13px;color:var(--gray-d);padding:8px 0;">Sin corners cortos registrados.</div></div>
+    </div>
+
+    <!-- JUGADORAS -->
+    <div class="tab-panel" id="panel-jugadoras">
+      <div class="sec">PLANTEL — toca + para registrar gol</div>
+      <div id="jug-list"></div>
+    </div>
+
+    <!-- PATRONES -->
+    <div class="tab-panel" id="panel-patrones">
+      <div class="sec">DETECCIÓN AUTOMÁTICA EN TIEMPO REAL</div>
+      <div id="patrones-list"><div style="font-size:13px;color:var(--gray-d);padding:8px 0;">Los patrones aparecen a medida que registrás datos.</div></div>
+    </div>
+
+    <!-- NOTAS -->
+    <div class="tab-panel" id="panel-notas">
+      <div class="sec">NOTAS Q1</div><textarea class="nota-textarea" id="nota-q1" placeholder="Observaciones Q1..."></textarea>
+      <div class="sec">NOTAS Q2</div><textarea class="nota-textarea" id="nota-q2" placeholder="Observaciones Q2..."></textarea>
+      <div class="sec">NOTAS Q3</div><textarea class="nota-textarea" id="nota-q3" placeholder="Observaciones Q3..."></textarea>
+      <div class="sec">NOTAS Q4</div><textarea class="nota-textarea" id="nota-q4" placeholder="Observaciones Q4..."></textarea>
+      <div class="sec">SÍNTESIS TÁCTICA</div><textarea class="nota-textarea" id="nota-sintesis" placeholder="Recomendaciones para la entrenadora..."></textarea>
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="tab-panel" id="panel-resumen">
+      <div class="sec">RESUMEN DEL PARTIDO</div>
+      <div class="resumen-card">
+        <div class="resumen-title">RESULTADO</div>
+        <div class="resumen-row"><span class="resumen-key">Puertos</span><span class="resumen-val g" id="res-gol_p">0</span></div>
+        <div class="resumen-row"><span class="resumen-key" id="res-lbl-r">Rival</span><span class="resumen-val" id="res-gol_r">0</span></div>
+      </div>
+      <div class="resumen-card">
+        <div class="resumen-title">ATAQUE PUERTOS</div>
+        <div class="resumen-row"><span class="resumen-key">Corner Cortos</span><span class="resumen-val" id="res-cc_p">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Tiros al arco</span><span class="resumen-val" id="res-tiro_p">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Entradas círculo</span><span class="resumen-val" id="res-circ_tot">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">  → Izquierda</span><span class="resumen-val" id="res-circ_izq">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">  → Centro</span><span class="resumen-val" id="res-circ_cen">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">  → Derecha</span><span class="resumen-val" id="res-circ_der">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Goles izquierda</span><span class="resumen-val" id="res-gol_izq">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Goles centro</span><span class="resumen-val" id="res-gol_cen">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Goles derecha</span><span class="resumen-val" id="res-gol_der">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Recuperaciones of.</span><span class="resumen-val" id="res-recup_of">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Pérdidas of.</span><span class="resumen-val" id="res-perd_of">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Salidas de balón</span><span class="resumen-val" id="res-salidas">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Pases profundidad</span><span class="resumen-val" id="res-pases_prof">0</span></div>
+      </div>
+      <div class="resumen-card">
+        <div class="resumen-title">RIVAL</div>
+        <div class="resumen-row"><span class="resumen-key">Corner Cortos rival</span><span class="resumen-val" id="res-cc_r">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Tiros rival</span><span class="resumen-val" id="res-tiro_r">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Entradas rival izq.</span><span class="resumen-val" id="res-circ_r_izq">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Entradas rival cen.</span><span class="resumen-val" id="res-circ_r_cen">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Entradas rival der.</span><span class="resumen-val" id="res-circ_r_der">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Intercepciones</span><span class="resumen-val" id="res-intercep">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Pérd. zona def.</span><span class="resumen-val" id="res-perd_def">0</span></div>
+      </div>
+      <div class="resumen-card">
+        <div class="resumen-title">CORNER CORTOS — DETALLE</div>
+        <div id="res-cc-det" style="font-size:13px;color:var(--gray-d);">Sin datos.</div>
+      </div>
+      <div class="resumen-card" id="res-jug-card">
+        <div class="resumen-title">GOLEADORAS</div>
+        <div id="res-jug-list" style="font-size:13px;color:var(--gray-d);">Sin goles registrados.</div>
+      </div>
+      <button class="copy-btn" onclick="copyWhatsApp()">Copiar para WhatsApp</button>
+      <button class="export-btn" onclick="exportCSV()">Exportar CSV</button>
+      <button class="reset-btn" onclick="resetMatch()">Nuevo partido</button>
+    </div>
+
+  </div><!-- /match-body -->
+
+  <div class="undo-bar">
+    <span class="undo-text" id="undo-text">Sin cambios aún</span>
+    <button class="undo-btn" onclick="undoLast()">↩ Deshacer</button>
+  </div>
+</div><!-- /screen-match -->
+
+<!-- GOL FAB -->
+<button class="fab-gol" id="fab-gol" style="display:none;" onclick="quickGol()">+<br>GOL</button>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// MÉTRICAS DEFINICIÓN
+// ══════════════════════════════════════════
+const METRIC_DEFS = {
+  // ATAQUE — prod
+  gol_p:      {label:'Goles',                   dot:'teal',  group:'ataque-prod'},
+  cc_p:       {label:'Corner Cortos',            dot:'blue',  group:'ataque-prod'},
+  tiro_p:     {label:'Tiros al arco',            dot:'amber', group:'ataque-prod'},
+  // ATAQUE — círculo
+  circ_izq:   {label:'Entradas círculo Izq.',    dot:'orange',group:'ataque-circ'},
+  circ_cen:   {label:'Entradas círculo Centro',  dot:'blue',  group:'ataque-circ'},
+  circ_der:   {label:'Entradas círculo Der.',    dot:'purple',group:'ataque-circ'},
+  // ATAQUE — goles por zona
+  gol_izq:    {label:'Goles Izquierda',          dot:'teal',  group:'ataque-zona'},
+  gol_cen:    {label:'Goles Centro',             dot:'teal',  group:'ataque-zona'},
+  gol_der:    {label:'Goles Derecha',            dot:'teal',  group:'ataque-zona'},
+  // ATAQUE — transición
+  recup_of:   {label:'Recuperaciones zona ofensiva', dot:'teal',  group:'ataque-trans'},
+  perd_of:    {label:'Perdidas zona ofensiva',   dot:'red',   group:'ataque-trans'},
+  salidas:    {label:'Salidas de balón',         dot:'gray',  group:'ataque-trans'},
+  pases_prof: {label:'Pases en profundidad',     dot:'blue',  group:'ataque-trans'},
+  // DEFENSA — rival prod
+  gol_r:      {label:'Goles Rival',              dot:'red',   group:'def-prod'},
+  cc_r:       {label:'Corner Cortos Rival',      dot:'orange',group:'def-prod'},
+  tiro_r:     {label:'Tiros Rival',              dot:'red',   group:'def-prod'},
+  // DEFENSA — rival círculo
+  circ_r_izq: {label:'Entradas Rival Izq.',      dot:'red',   group:'def-circ'},
+  circ_r_cen: {label:'Entradas Rival Centro',    dot:'red',   group:'def-circ'},
+  circ_r_der: {label:'Entradas Rival Der.',      dot:'red',   group:'def-circ'},
+  // DEFENSA — respuesta
+  intercep:   {label:'Intercepciones',           dot:'teal',  group:'def-resp'},
+  perd_def:   {label:'Pérdidas zona defensiva',  dot:'red',   group:'def-resp'},
+};
+
+const ALL_KEYS = Object.keys(METRIC_DEFS);
+
+// ══════════════════════════════════════════
+// PLANTELES
+// ══════════════════════════════════════════
+const PLANTELES = {
+  // Fuente: Planilla oficial AAHBA — F10 JM vs Puertos 7ma — 2026-05-16
+  '7ma': [
+    {d:'4',  n:'Fernandez Erut, Martina'},
+    {d:'5',  n:'Andina Silva, Julieta'},
+    {d:'7',  n:'Zucconi Vior, Nina'},
+    {d:'12', n:'Hernandez, Emilia'},
+    {d:'14', n:'Videla, Juana'},
+    {d:'15', n:'Ranalli, Lucia Nina'},
+    {d:'18', n:'Reguera, Sofia (C)'},
+    {d:'19', n:'Gonzalez Moreno, Martina'},
+    {d:'21', n:'Ghiringhelli, Justina'},
+    {d:'23', n:'Fernandez Abeijon, Maite'},
+    {d:'25', n:'Bidone, Lola'},
+    {d:'33', n:'Ticinese, Eugenia'},
+    {d:'34', n:'Fuchs, Guillermina'},
+    {d:'38', n:'Bermejo, Micaela Sol'},
+    {d:'42', n:'Linares, Ema'},
+    {d:'45', n:'Santos Montero, Sofia'},
+    {d:'50', n:'Hassanie, Juliana'},
+    {d:'52', n:'Pino, Carmela'},
+  ],
+  '1ra': [
+    {d:'1',  n:'Arquera 1ra'},{d:'4',n:'TBD'},{d:'7',n:'TBD'},
+    {d:'10', n:'Fuchs, Juliana'},{d:'11',n:'TBD'},{d:'12',n:'TBD'},
+    {d:'14', n:'TBD'},{d:'16',n:'TBD'},{d:'19',n:'Landa'},
+    {d:'20', n:'TBD'},{d:'22',n:'TBD'},{d:'24',n:'TBD'},
+    {d:'25', n:'TBD'},{d:'27',n:'TBD'},{d:'30',n:'TBD'},
+  ],
+  // Rivales Zona F4 — 7ma — fuente: planillas y scouting 2026
+  'Los Pinos': [
+    {d:'1',  n:'Salgan, Olivia'},
+    {d:'3',  n:'Batista Lamas, Sofia'},
+    {d:'8',  n:'Maigua, Nayla (C)'},
+    {d:'9',  n:'Dorch, Isabella'},
+    {d:'11', n:'Hraste Aris, Antonia'},
+    {d:'12', n:'Gorosito, Emma'},
+    {d:'13', n:'Gentile, Maria Lourdes'},
+    {d:'14', n:'Pereyra, Martina'},
+    {d:'15', n:'Costantino, Olivia'},
+    {d:'18', n:'Aliano, Luciana'},
+    {d:'19', n:'Sosa, Catalina'},
+    {d:'20', n:'Barzaghi, Delfina'},
+    {d:'21', n:'Vega, Julieta'},
+    {d:'23', n:'Herrera Di Paulo, Candela'},
+    {d:'24', n:'Salgan, Juana'},
+    {d:'25', n:'Marcos, Olivia'},
+    {d:'26', n:'Peirano, Ana I.'},
+    {d:'31', n:'Herrera, Victoria'},
+    {d:'75', n:'Baez Costa, Eluney'},
+    {d:'88', n:'Rey, Lara'},
+  ],
+  'Club JM': [
+    {d:'1',  n:'Daniele, Josefina'},
+    {d:'2',  n:'Jueguen, Emilia'},
+    {d:'6',  n:'Gaztambide, Joaquina'},
+    {d:'8',  n:'Amoedo, Malena'},
+    {d:'9',  n:'Rolon, Sofia'},
+    {d:'11', n:'Arcal, Valentina'},
+    {d:'13', n:'Dominguez Fessia, Victoria'},
+    {d:'14', n:'Garcia Minzoni, Milagros'},
+    {d:'17', n:'Coelho Bombardo, Clara Maria'},
+    {d:'19', n:'Alippe, Milagros'},
+    {d:'20', n:'Roveran Defendente, Lucia'},
+    {d:'24', n:'Rolon, Catalina'},
+    {d:'25', n:'Gavina, Juana (C)'},
+    {d:'26', n:'Perez Andrich, Isabel'},
+    {d:'27', n:'Adelardi Belinchon, Lola'},
+    {d:'28', n:'Durrieu, Elisa'},
+    {d:'29', n:'Pena Rios, Juana'},
+    {d:'88', n:'Trinidad Komatsu, Belen'},
+  ],
+  'scout':[], '5ta':[], '6ta':[],
+};
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+const SK = 'puertos_analytics_v3';
+let S = {
+  mode:'scout', rival:'Rival', fecha:'', cond:'local', cat:'7ma', q:1,
+  m:{},      // metrics total
+  byQ:{1:{},2:{},3:{},4:{}}, // per quarter
+  cc:[],
+  jugGoles:{},
+  notas:{q1:'',q2:'',q3:'',q4:'',sintesis:''},
+  history:[],
+};
+
+function initMetrics(){ ALL_KEYS.forEach(k=>{S.m[k]=0;}); }
+
+function save(){
+  const dot=document.getElementById('save-dot');
+  dot.classList.add('saving');
+  ['q1','q2','q3','q4','sintesis'].forEach(k=>{
+    const el=document.getElementById('nota-'+k);
+    if(el) S.notas[k]=el.value;
+  });
+  try{ localStorage.setItem(SK,JSON.stringify(S)); }catch(e){}
+  setTimeout(()=>dot.classList.remove('saving'),500);
+}
+
+function load(){
+  try{const s=localStorage.getItem(SK);if(s){S=JSON.parse(s);return true;}}catch(e){}
+  return false;
+}
+
+// ══════════════════════════════════════════
+// SCREENS
+// ══════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.getElementById('fab-gol').style.display=(id==='match')?'flex':'none';
+}
+
+function initHome(){
+  const saved=localStorage.getItem(SK);
+  const card=document.getElementById('saved-card');
+  const no=document.getElementById('no-saved');
+  if(saved){
+    try{
+      const s=JSON.parse(saved);
+      document.getElementById('saved-desc').textContent=
+        `${s.mode.toUpperCase()} · vs ${s.rival} · ${s.fecha||'sin fecha'} · Q${s.q}`;
+      card.style.display='flex'; no.style.display='none';
+    }catch(e){}
+  } else { card.style.display='none'; no.style.display='block'; }
+}
+
+function resumeSession(){ if(load()){ renderMatch(); showScreen('match'); } }
+
+// ══════════════════════════════════════════
+// SETUP
+// ══════════════════════════════════════════
+let _setupMode='scout';
+function startSetup(mode){
+  _setupMode=mode;
+  const lbl={scout:'Scout — Rival','7ma':'Puertos 7ma','1ra':'Puertos 1ra'};
+  document.getElementById('setup-mode-lbl').textContent=lbl[mode]||mode;
+  showScreen('setup');
+}
+function setPill(el,group){
+  document.querySelectorAll(`[data-${group}]`).forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+}
+function startMatch(){
+  const rival=document.getElementById('inp-rival').value.trim()||'Rival';
+  const fecha=document.getElementById('inp-fecha').value.trim();
+  const cond=document.querySelector('[data-cond].active')?.dataset.cond||'local';
+  const cat=document.querySelector('[data-cat].active')?.dataset.cat||'7ma';
+  S={mode:_setupMode,rival,fecha,cond,cat,q:1,m:{},byQ:{1:{},2:{},3:{},4:{}},
+     cc:[],jugGoles:{},notas:{q1:'',q2:'',q3:'',q4:'',sintesis:''},history:[]};
+  initMetrics(); save(); renderMatch(); showScreen('match');
+}
+
+// ══════════════════════════════════════════
+// BUILD METRIC ROWS
+// ══════════════════════════════════════════
+function buildMetricRows(){
+  const groups=['ataque-prod','ataque-circ','ataque-zona','ataque-trans','def-prod','def-circ','def-resp'];
+  groups.forEach(g=>{
+    const el=document.getElementById('rows-'+g);
+    if(!el) return;
+    el.innerHTML='';
+    Object.entries(METRIC_DEFS).forEach(([key,def])=>{
+      if(def.group!==g) return;
+      const row=document.createElement('div');
+      row.className='metric-row rip-wrap';
+      row.id='row-'+key;
+      row.innerHTML=`
+        <span class="dot dot-${def.dot}"></span>
+        <span class="metric-row-label">${def.label}</span>
+        <span class="metric-row-val" id="mv-${key}">0</span>
+        <div class="metric-row-btns">
+          <button class="m-btn m-minus" onclick="bump('${key}',-1);event.stopPropagation()">−</button>
+          <button class="m-btn m-plus" onclick="bump('${key}',1,document.getElementById('row-${key}'));event.stopPropagation()">+</button>
+        </div>`;
+      el.appendChild(row);
+    });
+  });
+}
+
+// ══════════════════════════════════════════
+// QUARTER
+// ══════════════════════════════════════════
+function setQ(q){
+  S.q=q;
+  document.querySelectorAll('.q-btn').forEach(b=>b.classList.toggle('active',+b.dataset.q===q));
+  save();
+}
+
+// ══════════════════════════════════════════
+// SCORE ADJ
+// ══════════════════════════════════════════
+function adjScore(team,delta){
+  const k=team==='p'?'gol_p':'gol_r';
+  S.m[k]=Math.max(0,(S.m[k]||0)+delta);
+  if(!S.byQ[S.q])S.byQ[S.q]={};
+  S.byQ[S.q][k]=Math.max(0,(S.byQ[S.q][k]||0)+delta);
+  updateMV(k); updateScoreboard(); save();
+}
+
+// ══════════════════════════════════════════
+// BUMP
+// ══════════════════════════════════════════
+function bump(key,delta,card){
+  S.m[key]=Math.max(0,(S.m[key]||0)+delta);
+  if(!S.byQ[S.q])S.byQ[S.q]={};
+  S.byQ[S.q][key]=Math.max(0,(S.byQ[S.q][key]||0)+delta);
+  S.history.push({type:'metric',key,delta,q:S.q});
+  updateMV(key); updateScoreboard();
+  document.getElementById('undo-text').textContent='Último: '+METRIC_DEFS[key].label+' Q'+S.q;
+  save(); updatePatrones(); updateResumen();
+  if(card&&delta>0) doRipple(card,event);
+}
+
+function updateMV(key){
+  const el=document.getElementById('mv-'+key);
+  if(el) el.textContent=S.m[key]||0;
+}
+function updateScoreboard(){
+  document.getElementById('score-p').textContent=S.m.gol_p||0;
+  document.getElementById('score-r').textContent=S.m.gol_r||0;
+}
+
+// ══════════════════════════════════════════
+// UNDO
+// ══════════════════════════════════════════
+function undoLast(){
+  if(!S.history.length){showToast('Sin acciones');return;}
+  const last=S.history.pop();
+  if(last.type==='metric'){
+    S.m[last.key]=Math.max(0,(S.m[last.key]||0)-last.delta);
+    if(S.byQ[last.q]) S.byQ[last.q][last.key]=Math.max(0,(S.byQ[last.q][last.key]||0)-last.delta);
+    updateMV(last.key); updateScoreboard(); showToast('Deshecho: '+METRIC_DEFS[last.key].label);
+  } else if(last.type==='cc'){
+    const idx=S.cc.findIndex(c=>c.id===last.id);
+    if(idx>=0){
+      const cc=S.cc[idx];
+      if(cc.resultado==='Gol'){
+        const k=cc.equipo==='Puertos'?'gol_p':'gol_r';
+        S.m[k]=Math.max(0,(S.m[k]||0)-1);
+        if(S.byQ[cc.q]) S.byQ[cc.q][k]=Math.max(0,(S.byQ[cc.q][k]||0)-1);
+        updateMV(k); updateScoreboard();
+      }
+      S.cc.splice(idx,1); renderCCList(); showToast('CC deshecho');
+    }
+  } else if(last.type==='jugGol'){
+    S.jugGoles[last.key]=Math.max(0,(S.jugGoles[last.key]||0)-1);
+    const mk2=last.isMine?'gol_p':'gol_r';
+    S.m[mk2]=Math.max(0,(S.m[mk2]||0)-1);
+    if(S.byQ[last.q]) S.byQ[last.q][mk2]=Math.max(0,(S.byQ[last.q][mk2]||0)-1);
+    updateMV(mk2); updateScoreboard(); renderJugadoras(); showToast('Gol deshecho');
+  }
+  save(); updatePatrones(); updateResumen();
+  const prev=S.history[S.history.length-1];
+  document.getElementById('undo-text').textContent=prev?'Último: '+(METRIC_DEFS[prev.key]?.label||prev.key):'Sin cambios';
+}
+
+// ══════════════════════════════════════════
+// CORNER CORTOS
+// ══════════════════════════════════════════
+function addCC(){
+  const equipo=document.getElementById('cc-equipo').value;
+  const sistema=document.getElementById('cc-sistema').value;
+  const tirador=document.getElementById('cc-tirador').value.trim()||'—';
+  const resultado=document.getElementById('cc-resultado').value;
+  const nota=document.getElementById('cc-nota').value.trim();
+  const item={id:Date.now(),q:S.q,equipo,sistema,tirador,resultado,nota};
+
+  // Si es gol, sumarlo al marcador automáticamente
+  if(resultado==='Gol'){
+    const k=equipo==='Puertos'?'gol_p':'gol_r';
+    S.m[k]=(S.m[k]||0)+1;
+    if(!S.byQ[S.q])S.byQ[S.q]={};
+    S.byQ[S.q][k]=(S.byQ[S.q][k]||0)+1;
+    updateMV(k); updateScoreboard();
+    showToast('¡Gol de CC sumado al marcador!');
+  } else {
+    showToast(equipo+' · '+resultado);
+  }
+
+  // También sumar al contador de CC correspondiente
+  const ccKey=equipo==='Puertos'?'cc_p':'cc_r';
+  S.m[ccKey]=(S.m[ccKey]||0)+1;
+  if(!S.byQ[S.q])S.byQ[S.q]={};
+  S.byQ[S.q][ccKey]=(S.byQ[S.q][ccKey]||0)+1;
+  updateMV(ccKey);
+
+  S.cc.push(item);
+  S.history.push({type:'cc',id:item.id});
+  document.getElementById('cc-tirador').value='';
+  document.getElementById('cc-nota').value='';
+  save(); renderCCList(); updatePatrones(); updateResumen();
+}
+
+function deleteCC(id){
+  const idx=S.cc.findIndex(c=>c.id===id);
+  if(idx<0) return;
+  const cc=S.cc[idx];
+  // restar CC del contador
+  const ccKey=cc.equipo==='Puertos'?'cc_p':'cc_r';
+  S.m[ccKey]=Math.max(0,(S.m[ccKey]||0)-1);
+  if(S.byQ[cc.q]) S.byQ[cc.q][ccKey]=Math.max(0,(S.byQ[cc.q][ccKey]||0)-1);
+  updateMV(ccKey);
+  // si era gol, restar del marcador
+  if(cc.resultado==='Gol'){
+    const k=cc.equipo==='Puertos'?'gol_p':'gol_r';
+    S.m[k]=Math.max(0,(S.m[k]||0)-1);
+    if(S.byQ[cc.q]) S.byQ[cc.q][k]=Math.max(0,(S.byQ[cc.q][k]||0)-1);
+    updateMV(k); updateScoreboard();
+  }
+  S.cc.splice(idx,1);
+  save(); renderCCList(); updatePatrones(); updateResumen();
+}
+
+function renderCCList(){
+  const el=document.getElementById('cc-list');
+  if(!S.cc.length){el.innerHTML='<div style="font-size:13px;color:var(--gray-d);padding:8px 0;">Sin corners cortos registrados.</div>';return;}
+  el.innerHTML=S.cc.map(c=>`
+    <div class="cc-item">
+      <span class="cc-q">Q${c.q}</span>
+      <span class="cc-info">${c.equipo} · ${c.sistema}${c.nota?' · '+c.nota:''} · #${c.tirador}</span>
+      <span class="cc-res ${c.resultado==='Gol'?'gol':'nogol'}">${c.resultado}</span>
+      <button class="cc-del" onclick="deleteCC(${c.id})">×</button>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+// JUGADORAS
+// ══════════════════════════════════════════
+function getPlayingPlantel(){
+  return PLANTELES[S.cat]||PLANTELES[S.mode]||[];
+}
+function getRivalPlantel(){
+  const rival=(S.rival||'').toLowerCase();
+  const keys=Object.keys(PLANTELES);
+  const match=keys.find(k=>{
+    if(['7ma','1ra','5ta','6ta','scout'].includes(k))return false;
+    return rival.includes(k.toLowerCase())||k.toLowerCase().includes(rival.split(' ')[0]);
+  });
+  return match?PLANTELES[match]:[];
+}
+function renderJugRow(j,prefix,isMine){
+  const key=prefix+j.d;
+  const g=S.jugGoles[key]||0;
+  const ds=isMine?'':'background:#B03030;';
+  const gs=isMine?'':'color:var(--red)';
+  const bs=isMine?'':'background:var(--red-l);color:var(--red)';
+  const dim=g===0?'style="opacity:0.3"':'';
+  return '<div class="jugadora-item">'
+    +'<div class="jug-dorsal" style="'+ds+'">'+j.d+'</div>'
+    +'<div class="jug-name">'+j.n+'</div>'
+    +'<div class="jug-gols" style="'+gs+'">'+(g>0?g+'G':'')+'</div>'
+    +'<button class="jug-undo" '+dim+' onclick="undoJugGol(this.dataset.k,'+isMine+')" data-k="'+key+'">↩</button>'
+    +'<button class="jug-btn" style="'+bs+'" onclick="addJugGol(this.dataset.k,'+isMine+')" data-k="'+key+'">+</button>'
+    +'</div>';
+}
+function renderJugadoras(){
+  const el=document.getElementById('jug-list');
+  const plantelP=getPlayingPlantel();
+  const plantelR=getRivalPlantel();
+  let html='';
+  if(plantelP.length){
+    html+='<div class="sec" style="margin-top:4px;">PUERTOS — '+S.cat.toUpperCase()+'</div>';
+    html+=plantelP.map(j=>renderJugRow(j,'p_',true)).join('');
+  }
+  if(plantelR.length){
+    html+='<div class="sec" style="color:var(--red);">RIVAL — '+(S.rival||'').toUpperCase()+'</div>';
+    html+=plantelR.map(j=>renderJugRow(j,'r_',false)).join('');
+  }
+  if(!plantelP.length&&!plantelR.length){
+    html='<div style="font-size:13px;color:var(--gray-d);padding:8px 0;">Plantel no disponible para este modo.</div>';
+  }
+  el.innerHTML=html;
+}
+
+function addJugGol(key,isMine){
+  S.jugGoles[key]=(S.jugGoles[key]||0)+1;
+  const mk=isMine?'gol_p':'gol_r';
+  S.m[mk]=(S.m[mk]||0)+1;
+  if(!S.byQ[S.q])S.byQ[S.q]={};
+  S.byQ[S.q][mk]=(S.byQ[S.q][mk]||0)+1;
+  S.history.push({type:'jugGol',key,isMine,q:S.q});
+  updateMV(mk); updateScoreboard(); renderJugadoras();
+  save(); updatePatrones(); updateResumen();
+  showToast((isMine?'Gol Puertos':'Gol Rival')+' #'+key.replace(/^[pr]_/,''));
+}
+
+function undoJugGol(key,isMine){
+  if(!(S.jugGoles[key]>0)) return;
+  S.jugGoles[key]=Math.max(0,(S.jugGoles[key]||0)-1);
+  const mk=isMine?'gol_p':'gol_r';
+  S.m[mk]=Math.max(0,(S.m[mk]||0)-1);
+  if(S.byQ[S.q]) S.byQ[S.q][mk]=Math.max(0,(S.byQ[S.q][mk]||0)-1);
+  updateMV(mk); updateScoreboard(); renderJugadoras();
+  save(); updatePatrones(); updateResumen();
+  showToast('Gol deshecho #'+key.replace(/^[pr]_/,''));
+}
+
+// ══════════════════════════════════════════
+// FAB GOL RÁPIDO
+// ══════════════════════════════════════════
+function quickGol(){
+  S.m.gol_p=(S.m.gol_p||0)+1;
+  if(!S.byQ[S.q])S.byQ[S.q]={};
+  S.byQ[S.q].gol_p=(S.byQ[S.q].gol_p||0)+1;
+  S.history.push({type:'metric',key:'gol_p',delta:1,q:S.q});
+  updateMV('gol_p'); updateScoreboard();
+  save(); updatePatrones(); updateResumen();
+  showToast('¡Gol Puertos! Q'+S.q);
+}
+
+// ══════════════════════════════════════════
+// PATRONES
+// ══════════════════════════════════════════
+function updatePatrones(){
+  const m=S.m; const cc=S.cc; const pats=[];
+
+  const ccP=cc.filter(c=>c.equipo==='Puertos');
+  const ccPG=ccP.filter(c=>c.resultado==='Gol');
+  if(ccP.length>=2){
+    const pct=Math.round(ccPG.length/ccP.length*100);
+    pats.push({t:pct>=33?'ok':'warn',title:`CC Puertos: ${pct}% conversión`,body:`${ccPG.length} gol(es) en ${ccP.length} corners cortos.`});
+  }
+
+  const ccR=cc.filter(c=>c.equipo==='Rival');
+  const ccRG=ccR.filter(c=>c.resultado==='Gol');
+  if(ccR.length>=2){
+    const pct=Math.round(ccRG.length/ccR.length*100);
+    pats.push({t:pct>=33?'warn':'ok',title:`CC Rival: ${pct}% conversión`,body:`${ccRG.length} gol(es) en ${ccR.length} corners cortos rival.`});
+  }
+
+  const izq=m.circ_izq||0,cen=m.circ_cen||0,der=m.circ_der||0,tot=izq+cen+der;
+  if(tot>=3){
+    const max=Math.max(izq,cen,der);
+    const banda=max===izq?'Izquierda':max===der?'Derecha':'Centro';
+    pats.push({t:'info',title:`Banda dominante Puertos: ${banda}`,body:`Izq ${izq} / Cen ${cen} / Der ${der} entradas al círculo.`});
+  }
+
+  const rizq=m.circ_r_izq||0,rcen=m.circ_r_cen||0,rder=m.circ_r_der||0,rtot=rizq+rcen+rder;
+  if(rtot>=3){
+    const max=Math.max(rizq,rcen,rder);
+    const banda=max===rizq?'Izquierda':max===rder?'Derecha':'Centro';
+    pats.push({t:'warn',title:`Rival ataca por: ${banda}`,body:`Izq ${rizq} / Cen ${rcen} / Der ${rder} entradas rivales.`});
+  }
+
+  if((m.tiro_p||0)>=3){
+    const pct=Math.round((m.gol_p||0)/(m.tiro_p||1)*100);
+    pats.push({t:pct>=20?'ok':'warn',title:`Efectividad tiros: ${pct}%`,body:`${m.gol_p||0} gol(es) en ${m.tiro_p||0} tiro(s).`});
+  }
+  if((m.perd_of||0)>=6) pats.push({t:'warn',title:'Pérdidas ofensivas elevadas',body:`${m.perd_of} pérdidas en zona ofensiva.`});
+
+  let mqV=0,mqQ=1;
+  [1,2,3,4].forEach(q=>{const v=(S.byQ[q]||{}).gol_p||0;if(v>mqV){mqV=v;mqQ=q;}});
+  if(mqV>0) pats.push({t:'info',title:`Cuarto más goleador: Q${mqQ}`,body:`${mqV} gol(es) en ese cuarto.`});
+
+  const el=document.getElementById('patrones-list');
+  el.innerHTML=pats.length?pats.map(p=>`<div class="patron-card"><div class="patron-dot ${p.t}"></div><div><div class="patron-title">${p.title}</div><div class="patron-body">${p.body}</div></div></div>`).join('')
+    :'<div style="font-size:13px;color:var(--gray-d);padding:8px 0;">Los patrones aparecen a medida que registrás datos.</div>';
+}
+
+// ══════════════════════════════════════════
+// RESUMEN
+// ══════════════════════════════════════════
+function updateResumen(){
+  const m=S.m;
+  // update all res- elements
+  const map={
+    gol_p:m.gol_p||0, gol_r:m.gol_r||0,
+    cc_p:m.cc_p||0, tiro_p:m.tiro_p||0,
+    circ_tot:(m.circ_izq||0)+(m.circ_cen||0)+(m.circ_der||0),
+    circ_izq:m.circ_izq||0, circ_cen:m.circ_cen||0, circ_der:m.circ_der||0,
+    gol_izq:m.gol_izq||0, gol_cen:m.gol_cen||0, gol_der:m.gol_der||0,
+    recup_of:m.recup_of||0, perd_of:m.perd_of||0, salidas:m.salidas||0, pases_prof:m.pases_prof||0,
+    cc_r:m.cc_r||0, tiro_r:m.tiro_r||0,
+    circ_r_izq:m.circ_r_izq||0, circ_r_cen:m.circ_r_cen||0, circ_r_der:m.circ_r_der||0,
+    intercep:m.intercep||0, perd_def:m.perd_def||0,
+  };
+  Object.entries(map).forEach(([k,v])=>{const el=document.getElementById('res-'+k);if(el)el.textContent=v;});
+  document.getElementById('res-lbl-r').textContent=S.rival||'Rival';
+
+  // CC detalle
+  const ccP=S.cc.filter(c=>c.equipo==='Puertos');
+  const ccR=S.cc.filter(c=>c.equipo==='Rival');
+  let det='';
+  if(ccP.length) det+=`Puertos: ${ccP.filter(c=>c.resultado==='Gol').length}/${ccP.length} convertidos. `;
+  if(ccR.length) det+=`Rival: ${ccR.filter(c=>c.resultado==='Gol').length}/${ccR.length} convertidos.`;
+  document.getElementById('res-cc-det').textContent=det||'Sin datos.';
+
+  // goleadoras
+  const gols=Object.entries(S.jugGoles).filter(([,g])=>g>0);
+  const plP=getPlayingPlantel();
+  const plR=getRivalPlantel();
+  const jugEl=document.getElementById('res-jug-list');
+  if(gols.length){
+    jugEl.innerHTML=gols.map(([key,g])=>{
+      const isMine=key.startsWith('p_');
+      const d=key.replace(/^[pr]_/,'');
+      const pl=isMine?plP:plR;
+      const j=pl.find(p=>p.d===d);
+      const label=isMine?'':'(Rival) ';
+      const cls=isMine?'g':'';
+      return '<div class="resumen-row"><span class="resumen-key">'+label+'#'+d+' '+(j?j.n:'?')+'</span><span class="resumen-val '+cls+'">'+g+'G</span></div>';
+    }).join('');
+  } else {
+    jugEl.textContent='Sin goles registrados.';
+  }
+}
+
+// ══════════════════════════════════════════
+// COPY / EXPORT
+// ══════════════════════════════════════════
+function copyWhatsApp(){
+  const m=S.m;
+  const ccP=S.cc.filter(c=>c.equipo==='Puertos');
+  const ccR=S.cc.filter(c=>c.equipo==='Rival');
+  const plP=getPlayingPlantel(); const plR=getRivalPlantel();
+  const golsStr=Object.entries(S.jugGoles).filter(([,g])=>g>0)
+    .map(([key,g])=>{
+      const isMine=key.startsWith('p_');
+      const d=key.replace(/^[pr]_/,'');
+      const pl=isMine?plP:plR;
+      const j=pl.find(p=>p.d===d);
+      return (isMine?'':'(R) ')+'#'+d+' '+(j?j.n.split(',')[0]:'?')+': '+g+'G';
+    }).join(', ');
+
+  let txt=`*PUERTOS DEL LAGO — ANÁLISIS*\n`;
+  txt+=`${S.cat.toUpperCase()} · vs ${S.rival} · ${S.fecha||''} · ${S.cond}\n\n`;
+  txt+=`*RESULTADO: Puertos ${m.gol_p||0} — ${m.gol_r||0} ${S.rival}*\n\n`;
+  txt+=`*ATAQUE PUERTOS*\n`;
+  txt+=`• CC: ${m.cc_p||0}`;
+  if(ccP.length) txt+=` (${ccP.filter(c=>c.resultado==='Gol').length} goles, ${Math.round(ccP.filter(c=>c.resultado==='Gol').length/ccP.length*100)}% conv.)`;
+  txt+=`\n• Tiros: ${m.tiro_p||0} | Entradas: ${(m.circ_izq||0)+(m.circ_cen||0)+(m.circ_der||0)} (izq ${m.circ_izq||0} / cen ${m.circ_cen||0} / der ${m.circ_der||0})\n`;
+  txt+=`• Goles por zona: izq ${m.gol_izq||0} / cen ${m.gol_cen||0} / der ${m.gol_der||0}\n`;
+  txt+=`• Recuper. of: ${m.recup_of||0} | Pérdidas of: ${m.perd_of||0} | Pases prof: ${m.pases_prof||0}\n`;
+  if(golsStr) txt+=`\n*GOLEADORAS*\n${golsStr}\n`;
+  txt+=`\n*RIVAL*\n`;
+  txt+=`• CC: ${m.cc_r||0}`;
+  if(ccR.length) txt+=` (${ccR.filter(c=>c.resultado==='Gol').length} goles)`;
+  txt+=`\n• Tiros: ${m.tiro_r||0} | Entradas: izq ${m.circ_r_izq||0} / cen ${m.circ_r_cen||0} / der ${m.circ_r_der||0}\n`;
+  txt+=`• Intercepciones: ${m.intercep||0} | Pérd. def: ${m.perd_def||0}\n`;
+  if(S.notas.sintesis) txt+=`\n*SÍNTESIS*\n${S.notas.sintesis}\n`;
+  txt+=`\nPuertos del Lago · Metro AAHBA 2026`;
+
+  navigator.clipboard.writeText(txt)
+    .then(()=>showToast('Copiado para WhatsApp'))
+    .catch(()=>showToast('No se pudo copiar automático'));
+}
+
+function exportCSV(){
+  let csv='Metrica,Total,Q1,Q2,Q3,Q4\n';
+  ALL_KEYS.forEach(k=>{
+    const qs=[1,2,3,4].map(q=>(S.byQ[q]||{})[k]||0).join(',');
+    csv+=`${METRIC_DEFS[k].label},${S.m[k]||0},${qs}\n`;
+  });
+  csv+='\nCorner Cortos\nQ,Equipo,Sistema,Tirador,Resultado,Nota\n';
+  S.cc.forEach(c=>{csv+=`${c.q},${c.equipo},${c.sistema},${c.tirador},${c.resultado},${c.nota||''}\n`;});
+  if(Object.values(S.jugGoles).some(g=>g>0)){
+    csv+='\nGoleadoras\nEquipo,Dorsal,Nombre,Goles\n';
+    const plP2=getPlayingPlantel(); const plR2=getRivalPlantel();
+    Object.entries(S.jugGoles).filter(([,g])=>g>0).forEach(([key,g])=>{
+      const isMine=key.startsWith('p_');
+      const d=key.replace(/^[pr]_/,'');
+      const pl=isMine?plP2:plR2;
+      const j=pl.find(p=>p.d===d);
+      csv+=(isMine?'Puertos':'Rival')+','+d+','+(j?j.n:'?')+','+g+'\n';
+    });
+  }
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`puertos_${(S.rival||'rival').replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); showToast('CSV descargado');
+}
+
+function resetMatch(){
+  if(!confirm('¿Borrar todos los datos y volver al inicio?')) return;
+  localStorage.removeItem(SK); showScreen('home'); initHome();
+}
+
+// ══════════════════════════════════════════
+// TAB SWITCH
+// ══════════════════════════════════════════
+function switchTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab==='patrones') updatePatrones();
+  if(tab==='resumen') updateResumen();
+  if(tab==='jugadoras') renderJugadoras();
+}
+
+// ══════════════════════════════════════════
+// RENDER MATCH (resume)
+// ══════════════════════════════════════════
+function renderMatch(){
+  document.getElementById('match-title').textContent='vs '+(S.rival||'Rival');
+  document.getElementById('match-sub').textContent=`${S.cat} · ${S.fecha||''} · ${S.cond} · autograbado`;
+  document.getElementById('lbl-rival').textContent=(S.rival||'Rival').toUpperCase().slice(0,10);
+  document.getElementById('res-lbl-r').textContent=S.rival||'Rival';
+  setQ(S.q);
+  buildMetricRows();
+  ALL_KEYS.forEach(k=>updateMV(k));
+  updateScoreboard();
+  renderCCList(); renderJugadoras();
+  ['q1','q2','q3','q4','sintesis'].forEach(k=>{
+    const el=document.getElementById('nota-'+k);
+    if(el){ el.value=S.notas[k]||''; el.addEventListener('input',()=>save()); }
+  });
+  updatePatrones(); updateResumen();
+}
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+function doRipple(el,e){
+  const r=document.createElement('div'); r.className='ripple-el';
+  const rect=el.getBoundingClientRect();
+  const size=Math.max(rect.width,rect.height)*2;
+  r.style.cssText=`width:${size}px;height:${size}px;left:${(e&&e.clientX?e.clientX-rect.left:rect.width/2)-size/2}px;top:${(e&&e.clientY?e.clientY-rect.top:rect.height/2)-size/2}px;`;
+  el.appendChild(r); setTimeout(()=>r.remove(),500);
+}
+
+// ══════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════
+initHome();
+</script>
+</body>
+</html>
