@@ -370,28 +370,25 @@ html,body{height:100%;background:#F4F3F0;font-family:-apple-system,BlinkMacSyste
         <div class="resumen-row"><span class="resumen-key" id="res-lbl-r">Rival</span><span class="resumen-val" id="res-gol_r">0</span></div>
       </div>
       <div class="resumen-card">
-        <div class="resumen-title">ATAQUE PUERTOS</div>
+        <div class="resumen-title">ATAQUE PUERTOS — TOTALES</div>
         <div class="resumen-row"><span class="resumen-key">Corner Cortos</span><span class="resumen-val" id="res-cc_p">0</span></div>
         <div class="resumen-row"><span class="resumen-key">Tiros al arco</span><span class="resumen-val" id="res-tiro_p">0</span></div>
         <div class="resumen-row"><span class="resumen-key">Entradas círculo</span><span class="resumen-val" id="res-circ_tot">0</span></div>
-        <div class="resumen-row"><span class="resumen-key">  → Izquierda</span><span class="resumen-val" id="res-circ_izq">0</span></div>
-        <div class="resumen-row"><span class="resumen-key">  → Centro</span><span class="resumen-val" id="res-circ_cen">0</span></div>
-        <div class="resumen-row"><span class="resumen-key">  → Derecha</span><span class="resumen-val" id="res-circ_der">0</span></div>
-        <div class="resumen-row"><span class="resumen-key">Goles izquierda</span><span class="resumen-val" id="res-gol_izq">0</span></div>
-        <div class="resumen-row"><span class="resumen-key">Goles centro</span><span class="resumen-val" id="res-gol_cen">0</span></div>
-        <div class="resumen-row"><span class="resumen-key">Goles derecha</span><span class="resumen-val" id="res-gol_der">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">  → Izq / Cen / Der</span><span class="resumen-val" id="res-circ_desg">0/0/0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Goles Izq/Cen/Der</span><span class="resumen-val" id="res-gol_zona">0/0/0</span></div>
         <div class="resumen-row"><span class="resumen-key">Recuperaciones of.</span><span class="resumen-val" id="res-recup_of">0</span></div>
         <div class="resumen-row"><span class="resumen-key">Pérdidas of.</span><span class="resumen-val" id="res-perd_of">0</span></div>
-        <div class="resumen-row"><span class="resumen-key">Salidas de balón</span><span class="resumen-val" id="res-salidas">0</span></div>
         <div class="resumen-row"><span class="resumen-key">Pases profundidad</span><span class="resumen-val" id="res-pases_prof">0</span></div>
+      </div>
+      <div class="resumen-card">
+        <div class="resumen-title">DESGLOSE POR CUARTO — PUERTOS</div>
+        <div id="res-por-cuarto"></div>
       </div>
       <div class="resumen-card">
         <div class="resumen-title">RIVAL</div>
         <div class="resumen-row"><span class="resumen-key">Corner Cortos rival</span><span class="resumen-val" id="res-cc_r">0</span></div>
         <div class="resumen-row"><span class="resumen-key">Tiros rival</span><span class="resumen-val" id="res-tiro_r">0</span></div>
-        <div class="resumen-row"><span class="resumen-key">Entradas rival izq.</span><span class="resumen-val" id="res-circ_r_izq">0</span></div>
-        <div class="resumen-row"><span class="resumen-key">Entradas rival cen.</span><span class="resumen-val" id="res-circ_r_cen">0</span></div>
-        <div class="resumen-row"><span class="resumen-key">Entradas rival der.</span><span class="resumen-val" id="res-circ_r_der">0</span></div>
+        <div class="resumen-row"><span class="resumen-key">Entradas Izq/Cen/Der</span><span class="resumen-val" id="res-circ_r_desg">0/0/0</span></div>
         <div class="resumen-row"><span class="resumen-key">Intercepciones</span><span class="resumen-val" id="res-intercep">0</span></div>
         <div class="resumen-row"><span class="resumen-key">Pérd. zona def.</span><span class="resumen-val" id="res-perd_def">0</span></div>
       </div>
@@ -403,7 +400,8 @@ html,body{height:100%;background:#F4F3F0;font-family:-apple-system,BlinkMacSyste
         <div class="resumen-title">GOLEADORAS</div>
         <div id="res-jug-list" style="font-size:13px;color:var(--gray-d);">Sin goles registrados.</div>
       </div>
-      <button class="save-btn" onclick="saveToSheet()" id="save-sheet-btn">💾 Guardar partido en historial</button>
+      <button class="save-btn" onclick="saveToSheet()" id="save-sheet-btn">💾 Guardar en historial</button>
+      <button class="save-btn" onclick="generarInforme()" id="informe-btn" style="background:var(--blue);margin-bottom:8px;">📋 Generar informe para Julieta</button>
       <button class="copy-btn" onclick="copyWhatsApp()">Copiar para WhatsApp</button>
       <button class="export-btn" onclick="exportCSV()">Exportar CSV</button>
       <button class="reset-btn" onclick="resetMatch()">Nuevo partido</button>
@@ -652,6 +650,8 @@ function buildMetricRows(){
 function setQ(q){
   S.q=q;
   document.querySelectorAll('.q-btn').forEach(b=>b.classList.toggle('active',+b.dataset.q===q));
+  updateAllMV();
+  updateScoreboard();
   save();
 }
 
@@ -682,9 +682,15 @@ function bump(key,delta,card){
 
 function updateMV(key){
   const el=document.getElementById('mv-'+key);
-  if(el) el.textContent=S.m[key]||0;
+  // Mostrar valor del cuarto actual, no el total
+  if(el) el.textContent=(S.byQ[S.q]||{})[key]||0;
+}
+
+function updateAllMV(){
+  updateAllMV();
 }
 function updateScoreboard(){
+  // Marcador siempre muestra TOTAL del partido
   document.getElementById('score-p').textContent=S.m.gol_p||0;
   document.getElementById('score-r').textContent=S.m.gol_r||0;
 }
@@ -931,20 +937,43 @@ function updatePatrones(){
 // ══════════════════════════════════════════
 function updateResumen(){
   const m=S.m;
-  // update all res- elements
   const map={
     gol_p:m.gol_p||0, gol_r:m.gol_r||0,
     cc_p:m.cc_p||0, tiro_p:m.tiro_p||0,
     circ_tot:(m.circ_izq||0)+(m.circ_cen||0)+(m.circ_der||0),
-    circ_izq:m.circ_izq||0, circ_cen:m.circ_cen||0, circ_der:m.circ_der||0,
-    gol_izq:m.gol_izq||0, gol_cen:m.gol_cen||0, gol_der:m.gol_der||0,
     recup_of:m.recup_of||0, perd_of:m.perd_of||0, salidas:m.salidas||0, pases_prof:m.pases_prof||0,
     cc_r:m.cc_r||0, tiro_r:m.tiro_r||0,
-    circ_r_izq:m.circ_r_izq||0, circ_r_cen:m.circ_r_cen||0, circ_r_der:m.circ_r_der||0,
     intercep:m.intercep||0, perd_def:m.perd_def||0,
   };
   Object.entries(map).forEach(([k,v])=>{const el=document.getElementById('res-'+k);if(el)el.textContent=v;});
+  const cd=document.getElementById('res-circ_desg');
+  if(cd) cd.textContent=(m.circ_izq||0)+'/'+(m.circ_cen||0)+'/'+(m.circ_der||0);
+  const gz=document.getElementById('res-gol_zona');
+  if(gz) gz.textContent=(m.gol_izq||0)+'/'+(m.gol_cen||0)+'/'+(m.gol_der||0);
+  const rd=document.getElementById('res-circ_r_desg');
+  if(rd) rd.textContent=(m.circ_r_izq||0)+'/'+(m.circ_r_cen||0)+'/'+(m.circ_r_der||0);
   document.getElementById('res-lbl-r').textContent=S.rival||'Rival';
+
+  // Desglose por cuarto
+  const qEl=document.getElementById('res-por-cuarto');
+  if(qEl){
+    const qKeys=['gol_p','cc_p','tiro_p','circ_izq','circ_cen','circ_der','recup_of','perd_of'];
+    const qLabels={'gol_p':'Goles','cc_p':'CC','tiro_p':'Tiros','circ_izq':'Izq','circ_cen':'Cen','circ_der':'Der','recup_of':'Recup','perd_of':'Pérd'};
+    let html='<div style="font-size:11px;color:var(--gray-d);display:grid;grid-template-columns:80px 1fr 1fr 1fr 1fr;gap:4px;margin-bottom:4px;">'
+      +'<div></div><div style="text-align:center;font-weight:700;">Q1</div><div style="text-align:center;font-weight:700;">Q2</div><div style="text-align:center;font-weight:700;">Q3</div><div style="text-align:center;font-weight:700;">Q4</div></div>';
+    qKeys.forEach(k=>{
+      const hasData=[1,2,3,4].some(q=>(S.byQ[q]||{})[k]>0);
+      if(!hasData) return;
+      html+='<div style="font-size:11px;display:grid;grid-template-columns:80px 1fr 1fr 1fr 1fr;gap:4px;padding:3px 0;border-bottom:1px solid var(--gray2);">'
+        +'<div style="color:var(--gray-d)">'+qLabels[k]+'</div>';
+      [1,2,3,4].forEach(q=>{
+        const v=(S.byQ[q]||{})[k]||0;
+        html+='<div style="text-align:center;font-weight:'+(v>0?'700':'400')+';color:'+(v>0?'var(--navy)':'var(--gray-d)')+'">'+v+'</div>';
+      });
+      html+='</div>';
+    });
+    qEl.innerHTML=html||'<div style="font-size:13px;color:var(--gray-d);">Sin datos aún.</div>';
+  }
 
   // CC detalle
   const ccP=S.cc.filter(c=>c.equipo==='Puertos');
@@ -1067,7 +1096,7 @@ function renderMatch(){
   document.getElementById('res-lbl-r').textContent=S.rival||'Rival';
   setQ(S.q);
   buildMetricRows();
-  ALL_KEYS.forEach(k=>updateMV(k));
+  updateAllMV();
   updateScoreboard();
   renderCCList(); renderJugadoras();
   ['q1','q2','q3','q4','sintesis'].forEach(k=>{
@@ -1142,6 +1171,206 @@ async function saveToSheet(){
     btn.disabled = false;
     showToast('Error al guardar: '+e.message);
   }
+}
+
+// ══════════════════════════════════════════
+// GENERAR INFORME PARA JULIETA
+// ══════════════════════════════════════════
+async function generarInforme(){
+  const btn=document.getElementById('informe-btn');
+  btn.disabled=true;
+  btn.textContent='⏳ Generando análisis...';
+
+  const m=S.m;
+  const ccP=S.cc.filter(c=>c.equipo==='Puertos');
+  const ccR=S.cc.filter(c=>c.equipo==='Rival');
+  const ccPGol=ccP.filter(c=>c.resultado==='Gol').length;
+  const ccRGol=ccR.filter(c=>c.resultado==='Gol').length;
+  const plP=getPlayingPlantel(); const plR=getRivalPlantel();
+  const golsStr=Object.entries(S.jugGoles).filter(([,g])=>g>0)
+    .map(([key,g])=>{
+      const isMine=key.startsWith('p_');
+      const d=key.replace(/^[pr]_/,'');
+      const pl=isMine?plP:plR;
+      const j=pl.find(p=>p.d===d);
+      return '#'+d+' '+(j?j.n.split(',')[0]:'?')+': '+g+' gol(es)';
+    }).join(', ');
+
+  const datosPorCuarto=[1,2,3,4].map(q=>{
+    const qd=S.byQ[q]||{};
+    return 'Q'+q+': Goles '+(qd.gol_p||0)+' | CC '+(qd.cc_p||0)+' | Tiros '+(qd.tiro_p||0)+' | Entradas '+(((qd.circ_izq||0)+(qd.circ_cen||0)+(qd.circ_der||0)))+' | GolRival '+(qd.gol_r||0);
+  }).join(' / ');
+
+  const systemPrompt=`Sos un analista profesional de hockey sobre hierba de Puertos del Lago HC, especializado en hockey femenino amateur en Argentina (Metro AAHBA 2026). 
+Generás informes técnicos concisos, profesionales y accionables para entrenadores. 
+Usás el término "Corner Corto" (no Penalty Corner). 
+El informe es para Julieta Parrilla, entrenadora de la 7ma división.
+Respondé SOLO con el informe, sin preámbulo.`;
+
+  const userPrompt=`Generá un informe técnico completo del siguiente partido de Puertos del Lago 7ma:
+
+PARTIDO: Puertos del Lago vs ${S.rival||'Rival'} | ${S.fecha||''} | ${S.cond} | Cat. ${S.cat}
+RESULTADO: Puertos ${m.gol_p||0} - ${m.gol_r||0} ${S.rival||'Rival'}
+
+MÉTRICAS PUERTOS:
+- Corner Cortos: ${m.cc_p||0} (${ccPGol} goles, ${ccP.length>0?Math.round(ccPGol/ccP.length*100):0}% conversión)
+- Tiros al arco: ${m.tiro_p||0}
+- Entradas al círculo: ${(m.circ_izq||0)+(m.circ_cen||0)+(m.circ_der||0)} (Izq: ${m.circ_izq||0} / Cen: ${m.circ_cen||0} / Der: ${m.circ_der||0})
+- Goles por zona: Izq ${m.gol_izq||0} / Cen ${m.gol_cen||0} / Der ${m.gol_der||0}
+- Recuperaciones ofensivas: ${m.recup_of||0}
+- Pérdidas ofensivas: ${m.perd_of||0}
+- Pases en profundidad: ${m.pases_prof||0}
+
+MÉTRICAS RIVAL:
+- Corner Cortos: ${m.cc_r||0} (${ccRGol} goles)
+- Tiros: ${m.tiro_r||0}
+- Entradas: Izq ${m.circ_r_izq||0} / Cen ${m.circ_r_cen||0} / Der ${m.circ_r_der||0}
+- Intercepciones de Puertos: ${m.intercep||0}
+
+POR CUARTO: ${datosPorCuarto}
+${golsStr?'GOLEADORAS: '+golsStr:''}
+${S.notas.sintesis?'NOTAS DEL ANALISTA: '+S.notas.sintesis:''}
+
+Estructurá el informe con estas secciones:
+1. RESUMEN EJECUTIVO (2-3 líneas)
+2. ANÁLISIS OFENSIVO (patrones, efectividad, banda dominante, Corner Cortos)
+3. ANÁLISIS DEFENSIVO (respuesta rival, vulnerabilidades)
+4. ANÁLISIS POR CUARTO (cuál fue el mejor/peor cuarto y por qué)
+5. JUGADORAS DESTACADAS (si hay datos)
+6. RECOMENDACIONES TÁCTICAS para el próximo partido (3-5 puntos concretos)
+
+Sé específico, técnico y accionable. Máximo 400 palabras.`;
+
+  try {
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:systemPrompt,
+        messages:[{role:'user',content:userPrompt}]
+      })
+    });
+    const data=await resp.json();
+    const texto=data.content&&data.content[0]?data.content[0].text:'Error al generar el análisis.';
+
+    // Mostrar el informe en un modal
+    mostrarInformeModal(texto);
+    btn.textContent='📋 Generar informe para Julieta';
+    btn.disabled=false;
+  } catch(e){
+    // Si falla la API (CORS en producción), generar informe local
+    const textoLocal=generarInformeLocal();
+    mostrarInformeModal(textoLocal);
+    btn.textContent='📋 Generar informe para Julieta';
+    btn.disabled=false;
+  }
+}
+
+function generarInformeLocal(){
+  const m=S.m;
+  const ccP=S.cc.filter(c=>c.equipo==='Puertos');
+  const ccPGol=ccP.filter(c=>c.resultado==='Gol').length;
+  const pct=ccP.length>0?Math.round(ccPGol/ccP.length*100):0;
+  const totCirc=(m.circ_izq||0)+(m.circ_cen||0)+(m.circ_der||0);
+  const maxBanda=Math.max(m.circ_izq||0,m.circ_cen||0,m.circ_der||0);
+  const banda=maxBanda===(m.circ_izq||0)?'Izquierda':maxBanda===(m.circ_der||0)?'Derecha':'Centro';
+  const plP=getPlayingPlantel();
+  const golsStr=Object.entries(S.jugGoles).filter(([k,g])=>g>0&&k.startsWith('p_'))
+    .map(([key,g])=>{const d=key.replace('p_','');const j=plP.find(p=>p.d===d);return '#'+d+' '+(j?j.n.split(',')[0]:'?')+' ('+g+'G)';}).join(', ');
+
+  const lineas=[
+    'INFORME TECNICO - PUERTOS DEL LAGO',
+    '--------------------------------',
+    S.cat.toUpperCase()+' | vs '+(S.rival||'Rival')+' | '+(S.fecha||'')+' | '+(S.cond),
+    '',
+    'RESULTADO: Puertos '+(m.gol_p||0)+' - '+(m.gol_r||0)+' '+(S.rival||'Rival'),
+    '',
+    'PRODUCCION OFENSIVA',
+    '- Corner Cortos: '+(m.cc_p||0)+' ('+ccPGol+' goles - '+pct+'% conversion)',
+    '- Tiros al arco: '+(m.tiro_p||0),
+    '- Entradas al circulo: '+totCirc+' (Izq '+(m.circ_izq||0)+' / Cen '+(m.circ_cen||0)+' / Der '+(m.circ_der||0)+')',
+    '- Goles por zona: Izq '+(m.gol_izq||0)+' / Cen '+(m.gol_cen||0)+' / Der '+(m.gol_der||0),
+    '- Banda dominante: '+banda,
+    '- Recuperaciones: '+(m.recup_of||0)+' | Perdidas: '+(m.perd_of||0),
+    '',
+    'POR CUARTO',
+  ];
+
+  [1,2,3,4].forEach(q=>{
+    const qd=S.byQ[q]||{};
+    const ent=(qd.circ_izq||0)+(qd.circ_cen||0)+(qd.circ_der||0);
+    lineas.push('Q'+q+': Goles '+(qd.gol_p||0)+' | CC '+(qd.cc_p||0)+' | Tiros '+(qd.tiro_p||0)+' | Entradas '+ent);
+  });
+
+  if(golsStr){
+    lineas.push('');
+    lineas.push('GOLEADORAS');
+    lineas.push(golsStr);
+  }
+
+  lineas.push('');
+  lineas.push('RIVAL');
+  lineas.push('- CC rival: '+(m.cc_r||0)+' | Tiros: '+(m.tiro_r||0));
+  lineas.push('- Intercepciones: '+(m.intercep||0));
+
+  if(S.notas.sintesis){
+    lineas.push('');
+    lineas.push('NOTAS DEL ANALISTA');
+    lineas.push(S.notas.sintesis);
+  }
+
+  lineas.push('');
+  lineas.push('--------------------------------');
+  lineas.push('Puertos del Lago - Metro AAHBA 2026');
+  lineas.push('Enviado por: Martin');
+
+  return lineas.join('\n');
+}
+function mostrarInformeModal(texto){
+  const existing=document.getElementById('informe-modal');
+  if(existing) existing.remove();
+  const modal=document.createElement('div');
+  modal.id='informe-modal';
+  modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;flex-direction:column;padding:16px;';
+  const closeBtn=document.createElement('button');
+  closeBtn.textContent='X';
+  closeBtn.style.cssText='background:none;border:none;color:rgba(255,255,255,0.7);font-size:22px;cursor:pointer;';
+  closeBtn.onclick=()=>modal.remove();
+  const hdr=document.createElement('div');
+  hdr.style.cssText='background:var(--navy);padding:14px 16px;border-radius:14px 14px 0 0;display:flex;align-items:center;justify-content:space-between;';
+  const htitle=document.createElement('span');
+  htitle.style.cssText='color:#fff;font-size:16px;font-weight:700;';
+  htitle.textContent='Informe para Julieta';
+  hdr.appendChild(htitle);
+  hdr.appendChild(closeBtn);
+  const body=document.createElement('div');
+  body.style.cssText='flex:1;overflow-y:auto;padding:16px;background:#fff;';
+  const pre=document.createElement('pre');
+  pre.style.cssText='font-family:-apple-system,sans-serif;font-size:13px;line-height:1.6;white-space:pre-wrap;color:#1A1A1A;';
+  pre.textContent=texto;
+  body.appendChild(pre);
+  const foot=document.createElement('div');
+  foot.style.cssText='padding:12px 16px;border-top:1px solid #E8E6E1;background:#fff;border-radius:0 0 14px 14px;';
+  const copyBtn=document.createElement('button');
+  copyBtn.textContent='Copiar para WhatsApp';
+  copyBtn.style.cssText='width:100%;padding:12px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;';
+  copyBtn.onclick=()=>copiarInforme();
+  foot.appendChild(copyBtn);
+  const wrap=document.createElement('div');
+  wrap.style.cssText='background:#fff;border-radius:14px;flex:1;display:flex;flex-direction:column;overflow:hidden;';
+  wrap.appendChild(hdr);
+  wrap.appendChild(body);
+  wrap.appendChild(foot);
+  modal.appendChild(wrap);
+  document.body.appendChild(modal);
+  window._informeTexto=texto;
+}
+function copiarInforme(){
+  navigator.clipboard.writeText(window._informeTexto||'')
+    .then(()=>showToast('Informe copiado'))
+    .catch(()=>showToast('Copiá el texto manualmente'));
 }
 
 // ══════════════════════════════════════════
