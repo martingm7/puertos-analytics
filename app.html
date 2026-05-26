@@ -686,9 +686,6 @@ function updateMV(key){
   if(el) el.textContent=(S.byQ[S.q]||{})[key]||0;
 }
 
-function updateAllMV(){
-  updateAllMV();
-}
 function updateScoreboard(){
   // Marcador siempre muestra TOTAL del partido
   document.getElementById('score-p').textContent=S.m.gol_p||0;
