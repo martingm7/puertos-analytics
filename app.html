@@ -647,6 +647,10 @@ function buildMetricRows(){
 // ══════════════════════════════════════════
 // QUARTER
 // ══════════════════════════════════════════
+function updateAllMV(){
+  ALL_KEYS.forEach(k=>updateMV(k));
+}
+
 function setQ(q){
   S.q=q;
   document.querySelectorAll('.q-btn').forEach(b=>b.classList.toggle('active',+b.dataset.q===q));
