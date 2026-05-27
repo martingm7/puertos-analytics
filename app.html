@@ -401,7 +401,7 @@ html,body{height:100%;background:#F4F3F0;font-family:-apple-system,BlinkMacSyste
         <div id="res-jug-list" style="font-size:13px;color:var(--gray-d);">Sin goles registrados.</div>
       </div>
       <button class="save-btn" onclick="saveToSheet()" id="save-sheet-btn">💾 Guardar en historial</button>
-      <button class="save-btn" onclick="generarInforme()" id="informe-btn" style="background:var(--blue);margin-bottom:8px;">📋 Generar informe para Julieta</button>
+      <button class="save-btn" onclick="generarInforme()" id="informe-btn" style="background:var(--blue);margin-bottom:8px;">📋 Generar informe para el entrenador</button>
       <button class="copy-btn" onclick="copyWhatsApp()">Copiar para WhatsApp</button>
       <button class="export-btn" onclick="exportCSV()">Exportar CSV</button>
       <button class="reset-btn" onclick="resetMatch()">Nuevo partido</button>
@@ -1258,13 +1258,13 @@ Sé específico, técnico y accionable. Máximo 400 palabras.`;
 
     // Mostrar el informe en un modal
     mostrarInformeModal(texto);
-    btn.textContent='📋 Generar informe para Julieta';
+    btn.textContent='📋 Generar informe para el entrenador';
     btn.disabled=false;
   } catch(e){
     // Si falla la API (CORS en producción), generar informe local
     const textoLocal=generarInformeLocal();
     mostrarInformeModal(textoLocal);
-    btn.textContent='📋 Generar informe para Julieta';
+    btn.textContent='📋 Generar informe para el entrenador';
     btn.disabled=false;
   }
 }
@@ -1312,9 +1312,26 @@ function generarInformeLocal(){
   }
 
   lineas.push('');
-  lineas.push('RIVAL');
-  lineas.push('- CC rival: '+(m.cc_r||0)+' | Tiros: '+(m.tiro_r||0));
+  lineas.push('RIVAL — PRODUCCION OFENSIVA');
+  lineas.push('- Corner Cortos: '+(m.cc_r||0));
+  lineas.push('- Tiros al arco: '+(m.tiro_r||0));
+  const totCircR=(m.circ_r_izq||0)+(m.circ_r_cen||0)+(m.circ_r_der||0);
+  lineas.push('- Entradas al circulo: '+totCircR+' (Izq '+(m.circ_r_izq||0)+' / Cen '+(m.circ_r_cen||0)+' / Der '+(m.circ_r_der||0)+')');
+  const maxBandaR=Math.max(m.circ_r_izq||0,m.circ_r_cen||0,m.circ_r_der||0);
+  const bandaR=totCircR===0?'Sin datos':maxBandaR===(m.circ_r_izq||0)?'Izquierda':maxBandaR===(m.circ_r_der||0)?'Derecha':'Centro';
+  lineas.push('- Banda dominante rival: '+bandaR);
+  lineas.push('- Goles rival: '+(m.gol_r||0));
+  lineas.push('');
+  lineas.push('RIVAL — POR CUARTO');
+  [1,2,3,4].forEach(q=>{
+    const qd=S.byQ[q]||{};
+    const entR=(qd.circ_r_izq||0)+(qd.circ_r_cen||0)+(qd.circ_r_der||0);
+    lineas.push('Q'+q+': Goles '+(qd.gol_r||0)+' | CC '+(qd.cc_r||0)+' | Tiros '+(qd.tiro_r||0)+' | Entradas '+entR);
+  });
+  lineas.push('');
+  lineas.push('PUERTOS — RESPUESTA DEFENSIVA');
   lineas.push('- Intercepciones: '+(m.intercep||0));
+  lineas.push('- Perdidas zona defensiva: '+(m.perd_def||0));
 
   if(S.notas.sintesis){
     lineas.push('');
