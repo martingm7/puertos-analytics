@@ -864,10 +864,7 @@ function undoLast(){
     }
   } else if(last.type==='jugGol'){
     S.jugGoles[last.key]=Math.max(0,(S.jugGoles[last.key]||0)-1);
-    const mk2=last.isMine?'gol_p':'gol_r';
-    S.m[mk2]=Math.max(0,(S.m[mk2]||0)-1);
-    if(S.byQ[last.q]) S.byQ[last.q][mk2]=Math.max(0,(S.byQ[last.q][mk2]||0)-1);
-    updateMV(mk2); updateScoreboard(); renderJugadoras(); showToast('Gol deshecho');
+    renderJugadoras(); showToast('Gol deshecho');
   }
   save(); updatePatrones(); updateResumen();
   const prev=S.history[S.history.length-1];
@@ -994,25 +991,19 @@ function renderJugadoras(){
 }
 
 function addJugGol(key,isMine){
+  // Solo registra quién hizo el gol — NO suma al marcador (evita duplicado)
   S.jugGoles[key]=(S.jugGoles[key]||0)+1;
-  const mk=isMine?'gol_p':'gol_r';
-  S.m[mk]=(S.m[mk]||0)+1;
-  if(!S.byQ[S.q])S.byQ[S.q]={};
-  S.byQ[S.q][mk]=(S.byQ[S.q][mk]||0)+1;
   S.history.push({type:'jugGol',key,isMine,q:S.q});
-  updateMV(mk); updateScoreboard(); renderJugadoras();
-  save(); updatePatrones(); updateResumen();
-  showToast((isMine?'Gol Puertos':'Gol Rival')+' #'+key.replace(/^[pr]_/,''));
+  renderJugadoras();
+  save(); updateResumen();
+  showToast('Gol asignado a #'+key.replace(/^[pr]_/,''));
 }
 
 function undoJugGol(key,isMine){
   if(!(S.jugGoles[key]>0)) return;
   S.jugGoles[key]=Math.max(0,(S.jugGoles[key]||0)-1);
-  const mk=isMine?'gol_p':'gol_r';
-  S.m[mk]=Math.max(0,(S.m[mk]||0)-1);
-  if(S.byQ[S.q]) S.byQ[S.q][mk]=Math.max(0,(S.byQ[S.q][mk]||0)-1);
-  updateMV(mk); updateScoreboard(); renderJugadoras();
-  save(); updatePatrones(); updateResumen();
+  renderJugadoras();
+  save(); updateResumen();
   showToast('Gol deshecho #'+key.replace(/^[pr]_/,''));
 }
 
