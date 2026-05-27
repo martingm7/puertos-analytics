@@ -207,14 +207,30 @@ html,body{height:100%;background:#F4F3F0;font-family:-apple-system,BlinkMacSyste
       <div style="flex:1"><div class="mode-name">Scout — Rival</div><div class="mode-desc">Observar y registrar ambos equipos en tiempo real.</div></div>
       <div class="mode-arrow">›</div>
     </div>
-    <div class="mode-card" onclick="startSetup('7ma')">
-      <div class="mode-icon" style="background:#D6F0E8;">🏑</div>
-      <div style="flex:1"><div class="mode-name">Puertos 7ma</div><div class="mode-desc">Plantel completo — Julieta Parrilla.</div></div>
-      <div class="mode-arrow">›</div>
-    </div>
+    <div class="home-section">PUERTOS DEL LAGO — CATEGORÍAS</div>
     <div class="mode-card" onclick="startSetup('1ra')">
       <div class="mode-icon" style="background:#EEEDFE;">⭐</div>
-      <div style="flex:1"><div class="mode-name">Puertos 1ra</div><div class="mode-desc">Plantel completo — Gonzalo Jusco.</div></div>
+      <div style="flex:1"><div class="mode-name">Puertos 1ra</div><div class="mode-desc">Gonzalo Jusco</div></div>
+      <div class="mode-arrow">›</div>
+    </div>
+    <div class="mode-card" onclick="startSetup('inter')">
+      <div class="mode-icon" style="background:#FDF3DC;">🏅</div>
+      <div style="flex:1"><div class="mode-name">Puertos Intermedia</div><div class="mode-desc">Plantel completo</div></div>
+      <div class="mode-arrow">›</div>
+    </div>
+    <div class="mode-card" onclick="startSetup('5ta')">
+      <div class="mode-icon" style="background:#E1F5EE;">🏑</div>
+      <div style="flex:1"><div class="mode-name">Puertos 5ta</div><div class="mode-desc">Juliana y Leandro Fuchs</div></div>
+      <div class="mode-arrow">›</div>
+    </div>
+    <div class="mode-card" onclick="startSetup('6ta')">
+      <div class="mode-icon" style="background:#FDECEA;">🏑</div>
+      <div style="flex:1"><div class="mode-name">Puertos 6ta</div><div class="mode-desc">Sol "Cho" Baez</div></div>
+      <div class="mode-arrow">›</div>
+    </div>
+    <div class="mode-card" onclick="startSetup('7ma')">
+      <div class="mode-icon" style="background:#D6F0E8;">🏑</div>
+      <div style="flex:1"><div class="mode-name">Puertos 7ma</div><div class="mode-desc">Julieta Parrilla</div></div>
       <div class="mode-arrow">›</div>
     </div>
     <div class="home-section">SESIÓN GUARDADA</div>
@@ -246,10 +262,11 @@ html,body{height:100%;background:#F4F3F0;font-family:-apple-system,BlinkMacSyste
       </div>
       <div class="setup-field"><label class="setup-label">CATEGORÍA</label>
         <div class="pill-group">
-          <div class="pill active" data-cat="7ma" onclick="setPill(this,'cat')">7ma</div>
-          <div class="pill" data-cat="1ra" onclick="setPill(this,'cat')">1ra</div>
+          <div class="pill active" data-cat="1ra" onclick="setPill(this,'cat')">1ra</div>
+          <div class="pill" data-cat="inter" onclick="setPill(this,'cat')">Inter</div>
           <div class="pill" data-cat="5ta" onclick="setPill(this,'cat')">5ta</div>
           <div class="pill" data-cat="6ta" onclick="setPill(this,'cat')">6ta</div>
+          <div class="pill" data-cat="7ma" onclick="setPill(this,'cat')">7ma</div>
         </div>
       </div>
       <button class="start-btn" onclick="startMatch()">Iniciar partido →</button>
@@ -532,7 +549,31 @@ const PLANTELES = {
     {d:'29', n:'Pena Rios, Juana'},
     {d:'88', n:'Trinidad Komatsu, Belen'},
   ],
-  'scout':[], '5ta':[], '6ta':[],
+  'inter': [
+    {d:'1',n:'TBD'},{d:'2',n:'TBD'},{d:'3',n:'TBD'},
+    {d:'4',n:'TBD'},{d:'5',n:'TBD'},{d:'6',n:'TBD'},
+    {d:'7',n:'TBD'},{d:'8',n:'TBD'},{d:'9',n:'TBD'},
+    {d:'10',n:'TBD'},{d:'11',n:'TBD'},{d:'12',n:'TBD'},
+    {d:'13',n:'TBD'},{d:'14',n:'TBD'},{d:'15',n:'TBD'},
+    {d:'16',n:'TBD'},{d:'17',n:'TBD'},{d:'18',n:'TBD'},
+  ],
+  '5ta': [
+    {d:'1',n:'TBD'},{d:'2',n:'TBD'},{d:'3',n:'TBD'},
+    {d:'4',n:'TBD'},{d:'5',n:'TBD'},{d:'6',n:'TBD'},
+    {d:'7',n:'TBD'},{d:'8',n:'TBD'},{d:'9',n:'TBD'},
+    {d:'10',n:'TBD'},{d:'11',n:'TBD'},{d:'12',n:'TBD'},
+    {d:'13',n:'TBD'},{d:'14',n:'TBD'},{d:'15',n:'TBD'},
+    {d:'16',n:'TBD'},{d:'17',n:'TBD'},{d:'18',n:'TBD'},
+  ],
+  '6ta': [
+    {d:'1',n:'TBD'},{d:'2',n:'TBD'},{d:'3',n:'TBD'},
+    {d:'4',n:'TBD'},{d:'5',n:'TBD'},{d:'6',n:'TBD'},
+    {d:'7',n:'TBD'},{d:'8',n:'TBD'},{d:'9',n:'TBD'},
+    {d:'10',n:'TBD'},{d:'11',n:'TBD'},{d:'12',n:'TBD'},
+    {d:'13',n:'TBD'},{d:'14',n:'TBD'},{d:'15',n:'TBD'},
+    {d:'16',n:'TBD'},{d:'17',n:'TBD'},{d:'18',n:'TBD'},
+  ],
+  'scout': [],
 };
 
 // ══════════════════════════════════════════
@@ -540,6 +581,15 @@ const PLANTELES = {
 // ══════════════════════════════════════════
 const SK = 'puertos_analytics_v3';
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyEiERIhAWOco1y9WayPB-epc9T-q4XyOCVgOeTlYUCVPkz_VkR_cyjhySDLdyoDJxKGQ/exec';
+
+const ENTRENADORES = {
+  '1ra':   'Gonzalo Jusco',
+  'inter': 'TBD',
+  '5ta':   'Juliana y Leandro Fuchs',
+  '6ta':   'Sol "Cho" Baez',
+  '7ma':   'Julieta Parrilla',
+  'scout': '',
+};
 let S = {
   mode:'scout', rival:'Rival', fecha:'', cond:'local', cat:'7ma', q:1,
   m:{},      // metrics total
@@ -599,8 +649,21 @@ function resumeSession(){ if(load()){ renderMatch(); showScreen('match'); } }
 let _setupMode='scout';
 function startSetup(mode){
   _setupMode=mode;
-  const lbl={scout:'Scout — Rival','7ma':'Puertos 7ma','1ra':'Puertos 1ra'};
+  const lbl={
+    scout:'Scout — Rival',
+    '1ra':'Puertos 1ra',
+    'inter':'Puertos Intermedia',
+    '5ta':'Puertos 5ta',
+    '6ta':'Puertos 6ta',
+    '7ma':'Puertos 7ma',
+  };
   document.getElementById('setup-mode-lbl').textContent=lbl[mode]||mode;
+  // Auto-seleccionar la categoría según el modo
+  if(mode !== 'scout'){
+    document.querySelectorAll('[data-cat]').forEach(e=>e.classList.remove('active'));
+    const pill=document.querySelector('[data-cat="'+mode+'"]');
+    if(pill) pill.classList.add('active');
+  }
   showScreen('setup');
 }
 function setPill(el,group){
@@ -1281,10 +1344,12 @@ function generarInformeLocal(){
   const golsStr=Object.entries(S.jugGoles).filter(([k,g])=>g>0&&k.startsWith('p_'))
     .map(([key,g])=>{const d=key.replace('p_','');const j=plP.find(p=>p.d===d);return '#'+d+' '+(j?j.n.split(',')[0]:'?')+' ('+g+'G)';}).join(', ');
 
+  const entrenador=ENTRENADORES[S.cat]||'';
   const lineas=[
     'INFORME TECNICO - PUERTOS DEL LAGO',
     '--------------------------------',
     S.cat.toUpperCase()+' | vs '+(S.rival||'Rival')+' | '+(S.fecha||'')+' | '+(S.cond),
+    entrenador?'Entrenador/a: '+entrenador:'',
     '',
     'RESULTADO: Puertos '+(m.gol_p||0)+' - '+(m.gol_r||0)+' '+(S.rival||'Rival'),
     '',
@@ -1342,6 +1407,7 @@ function generarInformeLocal(){
   lineas.push('');
   lineas.push('--------------------------------');
   lineas.push('Puertos del Lago - Metro AAHBA 2026');
+  if(entrenador) lineas.push('Para: '+entrenador);
   lineas.push('Enviado por: Martin');
 
   return lineas.join('\n');
