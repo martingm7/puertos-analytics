@@ -756,7 +756,7 @@ function startMatch(){
   const cond=document.querySelector('[data-cond].active')?.dataset.cond||'local';
   const cat=document.querySelector('[data-cat].active')?.dataset.cat||'7ma';
   S={mode:_setupMode,rival,fecha,fechaReal,cond,cat,q:1,m:{},byQ:{1:{},2:{},3:{},4:{}},
-     cc:[],jugGoles:{},notas:{q1:'',q2:'',q3:'',q4:'',sintesis:''},history:[]};
+     cc:[],jugGoles:{},notas:{q1:'',q2:'',q3:'',q4:'',sintesis:''},history:[],_guardado:false};
   initMetrics(); save(); renderMatch(); showScreen('match');
 }
 
@@ -1322,6 +1322,13 @@ function renderMatch(){
   updateAllMV();
   updateScoreboard();
   renderCCList(); renderJugadoras();
+  // Resetear botón guardar
+  const saveBtn = document.getElementById('save-sheet-btn');
+  if(saveBtn){
+    saveBtn.disabled = false;
+    saveBtn.textContent = '💾 Guardar en historial';
+    saveBtn.style.background = 'var(--teal)';
+  }
   ['q1','q2','q3','q4','sintesis'].forEach(k=>{
     const el=document.getElementById('nota-'+k);
     if(el){ el.value=S.notas[k]||''; el.addEventListener('input',()=>save()); }
