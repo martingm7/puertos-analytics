@@ -734,6 +734,11 @@ function startSetup(mode){
     const pill=document.querySelector('[data-cat="'+mode+'"]');
     if(pill) pill.classList.add('active');
   }
+  // Setear fecha de hoy por defecto
+  const inputFecha = document.getElementById('inp-fecha-real');
+  if(inputFecha && !inputFecha.value){
+    inputFecha.value = new Date().toISOString().slice(0,10);
+  }
   showScreen('setup');
 }
 function setPill(el,group){
@@ -743,9 +748,10 @@ function setPill(el,group){
 function startMatch(){
   const rival=document.getElementById('inp-rival').value.trim()||'Rival';
   const fecha=document.getElementById('inp-fecha').value.trim();
+  const fechaReal=document.getElementById('inp-fecha-real').value||new Date().toISOString().slice(0,10);
   const cond=document.querySelector('[data-cond].active')?.dataset.cond||'local';
   const cat=document.querySelector('[data-cat].active')?.dataset.cat||'7ma';
-  S={mode:_setupMode,rival,fecha,cond,cat,q:1,m:{},byQ:{1:{},2:{},3:{},4:{}},
+  S={mode:_setupMode,rival,fecha,fechaReal,cond,cat,q:1,m:{},byQ:{1:{},2:{},3:{},4:{}},
      cc:[],jugGoles:{},notas:{q1:'',q2:'',q3:'',q4:'',sintesis:''},history:[]};
   initMetrics(); save(); renderMatch(); showScreen('match');
 }
@@ -1304,7 +1310,7 @@ function switchTab(tab){
 // ══════════════════════════════════════════
 function renderMatch(){
   document.getElementById('match-title').textContent='vs '+(S.rival||'Rival');
-  document.getElementById('match-sub').textContent=`${S.cat} · ${S.fecha||''} · ${S.cond} · autograbado`;
+  document.getElementById('match-sub').textContent=`${S.cat} · ${S.fechaReal||''} · ${S.fecha||''} · ${S.cond} · autograbado`;
   document.getElementById('lbl-rival').textContent=(S.rival||'Rival').toUpperCase().slice(0,10);
   document.getElementById('res-lbl-r').textContent=S.rival||'Rival';
   setQ(S.q);
@@ -1347,6 +1353,7 @@ async function saveToSheet(){
   const ccR = S.cc.filter(c=>c.equipo==='Rival');
   
   const payload = {
+    fechaReal: S.fechaReal || new Date().toISOString().slice(0,10),
     fecha: S.fecha || new Date().toLocaleDateString('es-AR'),
     rival: S.rival || 'Rival',
     cat: S.cat,
