@@ -813,6 +813,7 @@ function bump(key,delta,card){
   S.history.push({type:'metric',key,delta,q:S.q});
   updateMV(key); updateScoreboard();
   document.getElementById('undo-text').textContent='Último: '+METRIC_DEFS[key].label+' Q'+S.q;
+  S._guardado = false;
   save(); updatePatrones(); updateResumen();
   if(card&&delta>0) doRipple(card,event);
 }
@@ -895,6 +896,7 @@ function addCC(){
 
   S.cc.push(item);
   S.history.push({type:'cc',id:item.id});
+  S._guardado = false;
   document.getElementById('cc-tirador').value='';
   document.getElementById('cc-nota').value='';
   save(); renderCCList(); updatePatrones(); updateResumen();
@@ -1204,8 +1206,85 @@ function exportCSV(){
 }
 
 function resetMatch(){
-  if(!confirm('¿Borrar todos los datos y volver al inicio?')) return;
-  localStorage.removeItem(SK); showScreen('home'); initHome();
+  // Verificar si hay datos sin guardar
+  const tieneData = Object.values(S.m||{}).some(v=>v>0) || (S.cc&&S.cc.length>0) || Object.values(S.jugGoles||{}).some(v=>v>0);
+  const guardado = S._guardado === true;
+
+  if(tieneData && !guardado){
+    // Hay datos sin guardar — mostrar advertencia fuerte
+    mostrarConfirmReset();
+    return;
+  }
+
+  // Sin datos o ya guardado — confirmar simple
+  if(!confirm('¿Iniciar nuevo partido? Esto borrará la sesión actual.')) return;
+  localStorage.removeItem(SK);
+  showScreen('home');
+  initHome();
+}
+
+function mostrarConfirmReset(){
+  const existing = document.getElementById('reset-modal');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'reset-modal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);z-index:2000;display:flex;align-items:center;justify-content:center;padding:24px;';
+
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#fff;border-radius:16px;padding:24px;width:100%;max-width:360px;';
+
+  const titulo = document.createElement('div');
+  titulo.style.cssText = 'font-size:18px;font-weight:700;color:#B03030;margin-bottom:8px;';
+  titulo.textContent = '⚠️ Datos sin guardar';
+
+  const texto = document.createElement('div');
+  texto.style.cssText = 'font-size:14px;color:#5F5E5A;line-height:1.5;margin-bottom:16px;';
+  texto.textContent = 'Tenés datos del partido que no fueron guardados en el historial. Si salís ahora los perdés.';
+
+  const label = document.createElement('div');
+  label.style.cssText = 'font-size:13px;font-weight:700;color:#1A1A1A;margin-bottom:6px;';
+  label.textContent = 'Escribí SALIR para confirmar:';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'Escribí SALIR';
+  input.style.cssText = 'width:100%;padding:10px 12px;border:2px solid #DDD9D2;border-radius:8px;font-size:16px;margin-bottom:14px;outline:none;';
+  input.addEventListener('input', ()=>{
+    btnConfirm.disabled = input.value.trim().toUpperCase() !== 'SALIR';
+    btnConfirm.style.opacity = input.value.trim().toUpperCase() === 'SALIR' ? '1' : '0.4';
+  });
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px;';
+
+  const btnCancel = document.createElement('button');
+  btnCancel.textContent = 'Volver al partido';
+  btnCancel.style.cssText = 'flex:1;padding:12px;background:#F4F3F0;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;color:#1A1A1A;';
+  btnCancel.onclick = ()=>modal.remove();
+
+  const btnConfirm = document.createElement('button');
+  btnConfirm.textContent = 'Salir sin guardar';
+  btnConfirm.disabled = true;
+  btnConfirm.style.cssText = 'flex:1;padding:12px;background:#B03030;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;color:#fff;opacity:0.4;';
+  btnConfirm.onclick = ()=>{
+    if(input.value.trim().toUpperCase() !== 'SALIR') return;
+    modal.remove();
+    localStorage.removeItem(SK);
+    showScreen('home');
+    initHome();
+  };
+
+  btnRow.appendChild(btnCancel);
+  btnRow.appendChild(btnConfirm);
+  box.appendChild(titulo);
+  box.appendChild(texto);
+  box.appendChild(label);
+  box.appendChild(input);
+  box.appendChild(btnRow);
+  modal.appendChild(box);
+  document.body.appendChild(modal);
+  setTimeout(()=>input.focus(), 100);
 }
 
 // ══════════════════════════════════════════
@@ -1296,6 +1375,8 @@ async function saveToSheet(){
     if(data.ok){
       btn.textContent = '✅ Guardado correctamente';
       btn.style.background = 'var(--teal)';
+      S._guardado = true;
+      save();
       showToast('Partido guardado en historial');
     } else {
       throw new Error(data.error || 'Error desconocido');
