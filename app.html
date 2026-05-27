@@ -734,12 +734,14 @@ function startSetup(mode){
     const pill=document.querySelector('[data-cat="'+mode+'"]');
     if(pill) pill.classList.add('active');
   }
-  // Setear fecha de hoy por defecto
-  const inputFecha = document.getElementById('inp-fecha-real');
-  if(inputFecha && !inputFecha.value){
-    inputFecha.value = new Date().toISOString().slice(0,10);
-  }
   showScreen('setup');
+  // Setear fecha de hoy por defecto — después de mostrar la pantalla
+  setTimeout(()=>{
+    const inputFecha = document.getElementById('inp-fecha-real');
+    if(inputFecha && !inputFecha.value){
+      inputFecha.value = new Date().toISOString().slice(0,10);
+    }
+  }, 50);
 }
 function setPill(el,group){
   document.querySelectorAll(`[data-${group}]`).forEach(e=>e.classList.remove('active'));
@@ -748,7 +750,8 @@ function setPill(el,group){
 function startMatch(){
   const rival=document.getElementById('inp-rival').value.trim()||'Rival';
   const fecha=document.getElementById('inp-fecha').value.trim();
-  const fechaReal=document.getElementById('inp-fecha-real').value||new Date().toISOString().slice(0,10);
+  const fechaRealEl=document.getElementById('inp-fecha-real');
+  const fechaReal=(fechaRealEl?fechaRealEl.value:'')||new Date().toISOString().slice(0,10);
   const cond=document.querySelector('[data-cond].active')?.dataset.cond||'local';
   const cat=document.querySelector('[data-cat].active')?.dataset.cat||'7ma';
   S={mode:_setupMode,rival,fecha,fechaReal,cond,cat,q:1,m:{},byQ:{1:{},2:{},3:{},4:{}},
